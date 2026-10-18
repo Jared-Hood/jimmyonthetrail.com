@@ -27,7 +27,7 @@ npm run preview
 - `src/content/blog/`: all 158 original daily entries, as editable Markdown files with validated frontmatter. Filenames and URLs preserve the original day numbers (0–157).
 - `src/pages/`: Astro pages for the home, journal, map, gallery, gear, well wishes, and 404.
 - `src/data/gear.json`: the complete original packing list.
-- `src/data/trail.json`: the original Appalachian Trail centerline. The interactive SVG map uses local coordinates and journal stops; no external map provider is needed.
+- `src/data/trail.json`: the original Appalachian Trail centerline, retained as archive data. The route page uses an Adventure Mapper embed in `src/components/TrailMap.astro`.
 - `src/data/wishes.json`: hardcoded well wishes, rendered as escaped text at build time.
 - `public/images/`: every original photo and supporting image. `site/` contains the old source assets; the remaining directories preserve the old public photo structure.
 - `public/images/optimized/`: smaller WebP derivatives used by the pages. Originals remain available, including in the gallery viewer.
