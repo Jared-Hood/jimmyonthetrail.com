@@ -87,7 +87,7 @@ Connect this repository in Cloudflare Pages and use:
 
 No Astro adapter or environment secrets are required for this static output. The canonical production URL is `https://jimmyonthetrail.com` in `astro.config.mjs`; update it before deploying under a different permanent domain.
 
-`public/_redirects` preserves the original `.html` pages and all 158 `/blog/{day}.html` links, plus old `/public/images/…` image paths. Extensionless `/blog/{day}` links are served by the generated directories. Cloudflare Pages applies `_headers` for image/font caching and standard response headers. A generated `404.html` handles missing pages.
+There are no custom redirects for legacy `.html` pages or `/public/images/…` image paths. Current `/blog/{day}/` links are served by the generated directories. Cloudflare Pages applies `_headers` for image/font caching and standard response headers. A generated `404.html` handles missing pages.
 
 RSS is at `/rss.xml`; the sitemap is at `/sitemap.xml`.
 
