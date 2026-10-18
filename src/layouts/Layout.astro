@@ -1,0 +1,163 @@
+---
+import '../styles/global.css';
+interface Props {
+  title?: string;
+  description?: string;
+  image?: string;
+  type?: string;
+}
+const {
+  title,
+  description = 'The journal and photographs from Jimmy “RocketMan” Hood’s 2022 Appalachian Trail thru-hike, from Georgia to Maine.',
+  image = '/images/site/skyline.jpeg',
+  type = 'website',
+} = Astro.props;
+const pageTitle = title
+  ? `${title} | Jimmy on the Trail`
+  : 'Jimmy on the Trail';
+const canonical = new URL(Astro.url.pathname, Astro.site);
+const links = [
+  ['/', 'Home'],
+  ['/blog/', 'Trail journal'],
+  ['/map/', 'The route'],
+  ['/gallery/', 'Gallery'],
+  ['/gear/', 'Gear'],
+  ['/wishes/', 'Well wishes'],
+];
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content={description} />
+    <meta name="theme-color" content="#f8f5ef" />
+    <link
+      rel="icon"
+      type="image/png"
+      sizes="32x32"
+      href="/favicon-32x32.png?v=rocketman-cream"
+    />
+    <link
+      rel="icon"
+      type="image/svg+xml"
+      href="/favicon.svg?v=rocketman-cream"
+    />
+    <link rel="shortcut icon" href="/favicon.ico?v=rocketman-cream" />
+    <link rel="mask-icon" href="/safari-pinned-tab.svg" color="#263d35" />
+    <link rel="manifest" href="/site.webmanifest" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="canonical" href={canonical} />
+    <link
+      rel="alternate"
+      type="application/rss+xml"
+      title="Jimmy on the Trail"
+      href="/rss.xml"
+    />
+    <meta property="og:title" content={pageTitle} />
+    <meta property="og:description" content={description} />
+    <meta property="og:type" content={type} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:image" content={new URL(image, Astro.site)} />
+    <meta name="twitter:card" content="summary_large_image" />
+    <title>{pageTitle}</title>
+    <slot name="head" />
+  </head>
+  <body>
+    <a href="#main" class="skip-link">
+      Skip to content
+    </a>
+    <header class="site-header">
+      <div class="shell header-inner">
+        <a class="brand" href="/" aria-label="Jimmy on the Trail home">
+          <img
+            class="brand-mark"
+            src="/brand/rocketman.svg"
+            alt=""
+            width="46"
+            height="46"
+          />
+          <span>
+            Jimmy <span class="brand-small">on the</span> Trail
+            <span class="brand-subtitle">ROCKETMAN · APPALACHIAN TRAIL</span>
+          </span>
+        </a>
+        <button
+          class="menu-toggle"
+          aria-controls="main-navigation"
+          aria-expanded="false"
+        >
+          Menu <span aria-hidden="true">☰</span>
+        </button>
+        <nav id="main-navigation" aria-label="Main navigation">
+          {links.map(([href, label]) => (
+            <a
+              href={href}
+              aria-current={
+                (
+                  href === '/'
+                    ? Astro.url.pathname === '/'
+                    : Astro.url.pathname.startsWith(href)
+                )
+                  ? 'page'
+                  : undefined
+              }
+            >
+              {label}
+            </a>
+          ))}
+        </nav>
+      </div>
+    </header>
+    <main id="main">
+      <slot />
+    </main>
+    <footer class="site-footer">
+      <div class="shell footer-top">
+        <div>
+          <a class="footer-brand" href="/">
+            <img
+              class="footer-mark"
+              src="/brand/rocketman-light.svg"
+              alt=""
+              width="38"
+              height="38"
+              loading="lazy"
+            />
+            Jimmy on the Trail<span aria-hidden="true"> ↗</span>
+          </a>
+          <p>A dream. A trail heading north. Georgia to Maine.</p>
+        </div>
+        <div class="footer-links">
+          <a href="/blog/">Read the journal</a>
+          <a href="/gallery/">Explore the photos</a>
+          <a href="/rss.xml">RSS feed ↗</a>
+        </div>
+      </div>
+      <div class="shell footer-bottom">
+        <span>© {new Date().getFullYear()} Jim Hood</span>
+        <span>Georgia → Maine · Class of 2022</span>
+      </div>
+    </footer>
+    <script>
+      const toggle = document.querySelector<HTMLButtonElement>('.menu-toggle');
+      const nav = document.querySelector<HTMLElement>('#main-navigation');
+      const close = () => {
+        toggle?.setAttribute('aria-expanded', 'false');
+        nav?.classList.remove('is-open');
+      };
+      toggle?.addEventListener('click', () => {
+        const open = toggle.getAttribute('aria-expanded') !== 'true';
+        toggle.setAttribute('aria-expanded', String(open));
+        nav?.classList.toggle('is-open', open);
+      });
+      document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape') close();
+      });
+      nav
+        ?.querySelectorAll('a')
+        .forEach((link) => link.addEventListener('click', close));
+    </script>
+  </body>
+</html>

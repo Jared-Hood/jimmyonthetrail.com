@@ -1,0 +1,34 @@
+---
+import Layout from '../layouts/Layout.astro';
+import PageIntro from '../components/PageIntro.astro';
+import PhotoGallery from '../components/PhotoGallery.astro';
+const photos = Array.from({ length: 87 }, (_, i) => ({
+  src: `/images/gallery/gallery${i + 1}.png`,
+  alt: `Appalachian Trail photograph ${i + 1}`,
+}));
+---
+
+<Layout
+  title="Photo gallery"
+  description="Jimmy’s Appalachian Trail photo gallery."
+>
+  <PageIntro
+    eyebrow="THROUGH ROCKETMAN’S LENS"
+    title="Wish you were here."
+    description="The scenery, trail friends, and small-town stops from Jimmy’s Appalachian Trail hike."
+  >
+    <p class="gallery-instruction">
+      87 photographs · Select any photo to take a closer look
+    </p>
+  </PageIntro>
+  <section class="shell section-bottom">
+    <PhotoGallery photos={photos} />
+    <p class="gallery-outro">
+      More photographs and the stories behind them are in{' '}
+      <a class="text-link" href="/blog/">
+        the trail journal ↗
+      </a>
+      .
+    </p>
+  </section>
+</Layout>

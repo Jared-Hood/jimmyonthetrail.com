@@ -1,0 +1,21 @@
+{
+  "name": "Jimmy on the Trail",
+  "short_name": "RocketMan",
+  "icons": [
+    {
+      "src": "/android-chrome-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/android-chrome-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ],
+  "theme_color": "#263d35",
+  "background_color": "#f8f5ef",
+  "display": "standalone",
+  "description": "Jimmy “RocketMan” Hood’s Appalachian Trail hike.",
+  "start_url": "/"
+}

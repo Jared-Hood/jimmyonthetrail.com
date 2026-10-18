@@ -1,43 +1,106 @@
-# Astro Starter Kit: Minimal
+# Jimmy on the Trail
+
+Jimmy “RocketMan” Hood’s 2022 Appalachian Trail archive, rebuilt with Astro and Tailwind CSS. The site is fully static and ready for Cloudflare Workers static assets or Cloudflare Pages. There is no Firebase dependency, database, map API key, or runtime server.
+
+## Develop
+
+Use Node.js 22.22 or newer.
 
 ```sh
-npm create astro@latest -- --template minimal
+npm ci
+npm run dev -- --background
+npm run astro -- dev status
+npm run astro -- dev logs
+npm run astro -- dev stop
 ```
 
-> 🧑‍🚀 **Seasoned astronaut?** Delete this file. Have fun!
+If the default port is in use, pass `--port 4350` when starting the background server. The command prints the preview URL.
 
-## 🚀 Project Structure
-
-Inside of your Astro project, you'll see the following folders and files:
-
-```text
-/
-├── public/
-├── src/
-│   └── pages/
-│       └── index.astro
-└── package.json
+```sh
+npm run check
+npm run build
+npm run preview
 ```
 
-Astro looks for `.astro` or `.md` files in the `src/pages/` directory. Each page is exposed as a route based on its file name.
+## Content
 
-There's nothing special about `src/components/`, but that's where we like to put any Astro/React/Vue/Svelte/Preact components.
+- `src/content/blog/`: all 158 original daily entries, as editable Markdown files with validated frontmatter. Filenames and URLs preserve the original day numbers (0–157).
+- `src/pages/`: Astro pages for the home, journal, map, gallery, gear, well wishes, and 404.
+- `src/data/gear.json`: the complete original packing list.
+- `src/data/trail.json`: the original Appalachian Trail centerline. The interactive SVG map uses local coordinates and journal stops; no external map provider is needed.
+- `src/data/wishes.json`: hardcoded well wishes, rendered as escaped text at build time.
+- `public/images/`: every original photo and supporting image. `site/` contains the old source assets; the remaining directories preserve the old public photo structure.
+- `public/images/optimized/`: smaller WebP derivatives used by the pages. Originals remain available, including in the gallery viewer.
+- `public/fonts/`: the original locally hosted fonts.
 
-Any static assets, like images, can be placed in the `public/` directory.
+To edit an entry, update its Markdown body or frontmatter and rebuild. `src/content.config.ts` defines the schema. The `day` field must be unique because it determines the public URL.
 
-## 🧞 Commands
+After adding/changing photos, run `npm run images`. The image helper uses the Sharp development dependency, to update generated WebP copies. Commit the image derivatives along with originals so Cloudflare only needs to run the site build.
 
-All commands are run from the root of the project, from a terminal:
+## Well wishes: pending source data
 
-| Command                   | Action                                           |
-| :------------------------ | :----------------------------------------------- |
-| `npm install`             | Installs dependencies                            |
-| `npm run dev`             | Starts local dev server at `localhost:4321`      |
-| `npm run build`           | Build your production site to `./dist/`          |
-| `npm run preview`         | Preview your build locally, before deploying     |
-| `npm run astro ...`       | Run CLI commands like `astro add`, `astro check` |
-| `npm run astro -- --help` | Get help using the Astro CLI                     |
+The original messages were stored exclusively in Firestore’s `comments` collection and were not included in the old repository. Public export requests returned `PERMISSION_DENIED`. No messages have been fabricated. The page currently displays a short archive notice; there is no submission form.
 
-## 👀 Want to learn more?
+When the export is available, replace `src/data/wishes.json` with an array:
 
-Feel free to check [our documentation](https://docs.astro.build) or jump into our [Discord server](https://astro.build/chat).
+```json
+[{ "name": "The original author", "message": "The original message" }]
+```
+
+Or import a JSON array / Firestore REST JSON export:
+
+```sh
+npm run import:wishes -- /absolute/path/to/comments.json
+npm run build
+```
+
+The importer runs locally and does not contact Firebase. The site never requests credentials or reads Firebase at runtime.
+
+## Cloudflare Workers (static assets)
+
+`wrangler.jsonc` serves the Astro `dist` directory directly, with trailing-slash URLs and the custom 404 page. No Worker script, Astro adapter, database, or runtime secret is needed. The local CLI is a pinned development dependency.
+
+```sh
+npm run deploy:check
+```
+
+This builds and validates the upload without publishing. When you are ready, sign into the intended Cloudflare account through Wrangler, confirm the target Worker name in `wrangler.jsonc`, and run:
+
+```sh
+npm run deploy
+```
+
+For Workers Builds, use `npm run build` as the build command and `npx wrangler deploy` as the deploy command. Add the custom domain through Cloudflare when ready to switch traffic. No deployment has been performed during this migration.
+
+Configuration follows [Cloudflare’s static site guidance](https://developers.cloudflare.com/workers/static-assets/routing/static-site-generation/).
+
+## Cloudflare Pages (alternative)
+
+Connect this repository in Cloudflare Pages and use:
+
+| Setting                | Value                                         |
+| ---------------------- | --------------------------------------------- |
+| Build command          | `npm run build`                               |
+| Build output directory | `dist`                                        |
+| Root directory         | Repository root                               |
+| Node version           | 22.22 or newer (set `NODE_VERSION` if needed) |
+
+No Astro adapter or environment secrets are required for this static output. The canonical production URL is `https://jimmyonthetrail.com` in `astro.config.mjs`; update it before deploying under a different permanent domain.
+
+`public/_redirects` preserves the original `.html` pages and all 158 `/blog/{day}.html` links, plus old `/public/images/…` image paths. Extensionless `/blog/{day}` links are served by the generated directories. Cloudflare Pages applies `_headers` for image/font caching and standard response headers. A generated `404.html` handles missing pages.
+
+RSS is at `/rss.xml`; the sitemap is at `/sitemap.xml`.
+
+## Migration notes
+
+- Original journal text, dates, mileage, and coordinates are preserved. The historic homepage’s final distance of 2,194.3 miles is used for the summary statistics; daily mileage is displayed as recorded rather than silently reconciled.
+- The homepage introduction, final reflection, and gear introduction retain Jimmy’s original wording. Editorial headings and supporting copy draw on his themes of following a dream, appreciating the people and places along the trail, and encouraging others to go. Attributed quotations reproduce his actual words; the Markdown journal entries remain unchanged. The original personal photos, portrait, skyline, and summit photo are retained.
+- The gallery preserves all 87 original gallery photos. Daily journal photos stay with their respective entries.
+- Firebase administration, live tracking, and comment submission are intentionally retired. The route represents the completed 2022 hike.
+- No deployment has been performed as part of the migration.
+
+## RocketMan branding
+
+The logo is the 🚀 rocket emoji above a mountain ridge, on a transparent background. The header uses `public/brand/rocketman.svg`; the footer uses `public/brand/rocketman-light.svg` with a cream ridge for contrast. The favicon and home-screen icons use just the rocket on a cream background. The emoji is stored locally to keep the mark consistent across devices.
+
+Run `npm run icons` after editing `scripts/build-brand.mjs` or the source emoji asset. This regenerates the SVG logo, SVG favicon, ICO, PNG favicons, and home-screen icons without requiring a system emoji font. The monochrome Safari pinned-tab icon is maintained in `public/safari-pinned-tab.svg`.

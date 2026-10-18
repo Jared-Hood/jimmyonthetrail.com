@@ -1,0 +1,34 @@
+---
+import Layout from '../layouts/Layout.astro';
+import PageIntro from '../components/PageIntro.astro';
+import TrailMap from '../components/TrailMap.astro';
+---
+
+<Layout
+  title="The route"
+  description="Jimmy’s 2022 Appalachian Trail route and recorded stops."
+>
+  <PageIntro
+    eyebrow="SPRINGER MOUNTAIN → MOUNT KATAHDIN"
+    title="A long walk north."
+    description="Fourteen states, 157 days, and a dream made real. Explore the route and Jimmy’s recorded stops along the trail."
+  />
+  <section class="shell section-bottom">
+    <div class="route-summary">
+      <span>
+        <strong>2,194.3</strong> miles traveled
+      </span>
+      <span>
+        <strong>157</strong> days on trail
+      </span>
+      <span class="route-complete">
+        <span aria-hidden="true">✓</span> Journey complete · August 17, 2022
+      </span>
+    </div>
+    <TrailMap />
+    <p class="map-disclaimer">
+      This is an archive of the 2022 hike, using the original route and recorded
+      stops. It is not a navigation guide.
+    </p>
+  </section>
+</Layout>

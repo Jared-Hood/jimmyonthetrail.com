@@ -1,0 +1,148 @@
+---
+import { render } from 'astro:content';
+import Layout from '../../layouts/Layout.astro';
+import {
+  getPosts,
+  postUrl,
+  formatDate,
+  excerpt,
+  cover,
+  optimized,
+  type Post,
+} from '../../lib/blog';
+export async function getStaticPaths() {
+  const posts = await getPosts();
+  return posts.map((post, index) => ({
+    params: { day: String(post.data.day) },
+    props: { post, previous: posts[index - 1], next: posts[index + 1] },
+  }));
+}
+interface Props {
+  post: Post;
+  previous?: Post;
+  next?: Post;
+}
+const { post, previous, next } = Astro.props;
+const { Content } = await render(post);
+const photos = [
+  ...post.data.images,
+  ...(post.data.day === 157 ? ['/images/site/Summit.jpg'] : []),
+];
+const structured = {
+  '@context': 'https://schema.org',
+  '@type': 'BlogPosting',
+  headline: post.data.title,
+  datePublished: post.data.date,
+  author: { '@type': 'Person', name: 'Jim Hood' },
+  image: new URL(cover(post), Astro.site).href,
+  url: new URL(postUrl(post), Astro.site).href,
+  description: excerpt(post),
+};
+---
+
+<Layout
+  title={`Day ${post.data.day}: ${post.data.title}`}
+  description={excerpt(post)}
+  image={cover(post)}
+  type="article"
+>
+  <script
+    slot="head"
+    type="application/ld+json"
+    set:html={JSON.stringify(structured).replace(/</g, '\u003c')}
+  />
+  <article class="shell article-shell section-bottom">
+    <a class="back-link" href="/blog/">
+      ← Back to the trail journal
+    </a>
+    <header class="article-header">
+      <p class="eyebrow">
+        TRAIL JOURNAL · DAY {String(post.data.day).padStart(2, '0')}
+      </p>
+      <h1>{post.data.title}</h1>
+      <div class="article-meta">
+        <time datetime={post.data.date}>{formatDate(post.data.date)}</time>
+        <span>{post.data.mileage} miles today</span>
+        <span>By Jimmy “RocketMan” Hood</span>
+      </div>
+    </header>
+    <div class="article-layout">
+      <div>
+        <div class="prose article-body">{post.body?.trim() && <Content />}</div>
+        <div class="article-photos">
+          {photos.map((src, index) => (
+            <figure>
+              <a
+                href={src}
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label={`Open full-size photograph ${index + 1} from ${post.data.title}`}
+              >
+                <img
+                  src={optimized(src, 960)}
+                  alt={
+                    post.data.day === 157
+                      ? 'Jimmy celebrating atop the Mount Katahdin summit sign'
+                      : `${post.data.title}, trail photograph ${index + 1}`
+                  }
+                  width="960"
+                  height="720"
+                  loading={index === 0 ? 'eager' : 'lazy'}
+                />
+              </a>
+            </figure>
+          ))}
+        </div>
+      </div>
+      <aside class="trail-note">
+        <p class="eyebrow">ON THE TRAIL</p>
+        <span class="trail-note-day">Day {post.data.day}</span>
+        <dl>
+          <div>
+            <dt>Distance today</dt>
+            <dd>{post.data.mileage} miles</dd>
+          </div>
+          {post.data.altitude !== undefined && (
+            <div>
+              <dt>Recorded elevation</dt>
+              <dd>
+                {post.data.altitude.toLocaleString('en-US', {
+                  maximumFractionDigits: 0,
+                })}{' '}
+                ft
+              </dd>
+            </div>
+          )}
+          <div>
+            <dt>Coordinates</dt>
+            <dd>
+              {post.data.latitude.toFixed(4)}° N<br />
+              {Math.abs(post.data.longitude).toFixed(4)}° W
+            </dd>
+          </div>
+        </dl>
+        <a class="text-link" href={`/map/?day=${post.data.day}`}>
+          Find this day on the route ↗
+        </a>
+      </aside>
+    </div>
+    <nav class="post-pagination" aria-label="Journal entries">
+      <div>
+        {previous && (
+          <a href={postUrl(previous)}>
+            <span>← PREVIOUS · DAY {previous.data.day}</span>
+            <strong>{previous.data.title}</strong>
+          </a>
+        )}
+      </div>
+      <div>
+        {next && (
+          <a href={postUrl(next)}>
+            <span>NEXT · DAY {next.data.day} →</span>
+            <strong>{next.data.title}</strong>
+          </a>
+        )}
+      </div>
+    </nav>
+  </article>
+</Layout>

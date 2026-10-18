@@ -1,0 +1,44 @@
+---
+import Layout from '../layouts/Layout.astro';
+import PageIntro from '../components/PageIntro.astro';
+import gear from '../data/gear.json';
+---
+
+<Layout
+  title="The gear"
+  description="Jimmy’s original Appalachian Trail gear list: pack, shelter, sleep system, clothing, cooking, and everything else he carried in 2022."
+>
+  <PageIntro
+    eyebrow="EVERY OUNCE COUNTS"
+    title="What I carried."
+    description="If there's one thing I love... it's a lightweight backpack to keep my old knees happy. My wife may not like the price I'm paying, but let me tell you saving that extra ounce really makes all the difference."
+  />
+  <section class="shell section-bottom">
+    <div class="gear-summary">
+      <div>
+        <p class="eyebrow">THE STARTING BASE WEIGHT</p>
+        <strong>
+          17 <span>lbs</span> 11 <span>oz</span>
+        </strong>
+      </div>
+      <p>Without food, water, worn clothes, and poles.</p>
+    </div>
+    <div class="gear-grid">
+      {gear.map((section, index) => (
+        <section class="gear-category">
+          <span class="gear-number">{String(index + 1).padStart(2, '0')}</span>
+          <h2>
+            {section.title === 'Toiliteries/First Aid'
+              ? 'Toiletries & first aid'
+              : section.title}
+          </h2>
+          <ul>
+            {section.items.map((item) => (
+              <li>{item}</li>
+            ))}
+          </ul>
+        </section>
+      ))}
+    </div>
+  </section>
+</Layout>

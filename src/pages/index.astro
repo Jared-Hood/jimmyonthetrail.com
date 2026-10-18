@@ -1,16 +1,236 @@
 ---
+import Layout from '../layouts/Layout.astro';
+import PostCard from '../components/PostCard.astro';
+import { getPosts, optimized } from '../lib/blog';
+const posts = await getPosts();
+const featured = [157, 9, 0].map((day) =>
+  posts.find((post) => post.data.day === day)!,
+);
 ---
 
-<html lang="en">
-	<head>
-		<meta charset="utf-8" />
-		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-		<link rel="icon" href="/favicon.ico" />
-		<meta name="viewport" content="width=device-width" />
-		<meta name="generator" content={Astro.generator} />
-		<title>Astro</title>
-	</head>
-	<body>
-		<h1>Astro</h1>
-	</body>
-</html>
+<Layout>
+  <section class="hero">
+    <img
+      class="hero-image"
+      src={optimized('/images/site/skyline.jpeg', 1800)}
+      alt="Layers of blue mountains stretching toward the horizon along the Appalachian Trail"
+      width="1800"
+      height="1200"
+      fetchpriority="high"
+    />
+    <div class="hero-shade"></div>
+    <div class="shell hero-content">
+      <p class="eyebrow">
+        <span class="rocket-emoji" aria-hidden="true">
+          🚀
+        </span>{' '}
+        A 2022 APPALACHIAN TRAIL THRU-HIKE
+      </p>
+      <h1>
+        One trail.
+        <br />A lifetime of
+        <br />
+        <em>memories.</em>
+      </h1>
+      <p>
+        Jimmy “RocketMan” Hood’s Appalachian Trail thru-hike.
+        <br class="desktop-break" />
+        From Georgia to Maine, March 14 to August 17, 2022.
+      </p>
+      <div class="hero-actions">
+        <a class="button button-cream" href="/blog/">
+          Explore the trail journal <span aria-hidden="true">↗</span>
+        </a>
+        <a class="hero-secondary" href="#about">
+          Meet RocketMan <span aria-hidden="true">↓</span>
+        </a>
+      </div>
+    </div>
+    <div class="hero-bottom shell">
+      <span>SPRINGER MOUNTAIN, GA</span>
+      <span class="hero-route" aria-hidden="true">
+        ○ ───────────────→ ○
+      </span>
+      <span>MOUNT KATAHDIN, ME</span>
+      <span class="hero-dates">MARCH 14 — AUGUST 17, 2022</span>
+    </div>
+  </section>
+  <section class="stats-strip" aria-label="Final hike statistics">
+    <div class="shell stats-grid">
+      <div>
+        <strong>
+          2,194.3<span> mi</span>
+        </strong>
+        <span>MILES OF ADVENTURE</span>
+      </div>
+      <div>
+        <strong>157</strong>
+        <span>DAYS ON THE TRAIL</span>
+      </div>
+      <div>
+        <strong>14</strong>
+        <span>STATES ALONG THE WAY</span>
+      </div>
+      <div>
+        <strong>5,904,703</strong>
+        <span>STEPS TOWARD A DREAM</span>
+      </div>
+    </div>
+  </section>
+  <section id="story" class="shell section story-grid">
+    <div class="summit-frame">
+      <img
+        src={optimized('/images/site/Summit.jpg', 960)}
+        alt="Jimmy with arms raised on the Mount Katahdin summit sign"
+        width="960"
+        height="1280"
+        loading="lazy"
+      />
+      <span class="photo-note">Katahdin. August 17, 2022.</span>
+      <span class="completion-stamp">
+        GEORGIA TO MAINE
+        <br />
+        <b>THRU-HIKER</b>
+        <br />
+        CLASS OF 2022
+      </span>
+    </div>
+    <div class="story-copy">
+      <p class="eyebrow">THE FINISH LINE</p>
+      <h2>
+        That’s a wrap.
+        <br />
+        <em>What a journey.</em>
+      </h2>
+      <p class="lead">
+        To all my friends and family that followed my AT adventure and provided
+        words of encouragement THANK YOU! I would not of finished without your
+        support.
+      </p>
+      <p>
+        I can say that the AT gave me the opportunity to experience a part of
+        America that most Americans will never see. The people I met were from
+        many different professions - recent high school graduates, firemen,
+        nurses, truck drivers, layers, doctors, rocket scientist, etc… they
+        spanned the ages of 18 to 80 and all had their own reason to be on
+        trail. These people were some of the best of America and other countries
+        and they could be counted on to help each other and provide
+        encouragement when times were hard.
+      </p>
+      <p>
+        The numerous small towns that I would likely never visit added to the
+        adventure with great food, drink and interesting people.
+      </p>
+      <p>
+        Finally if you were ever considering on venturing out on a journey
+        yourself I would encourage you to GO it can be the best adventure you
+        ever have. Be safe and be kind to each other!
+      </p>
+      <a class="text-link" href="/blog/157/">
+        Read about the final climb <span aria-hidden="true">↗</span>
+      </a>
+      <div class="small-stats">
+        <span>
+          <strong>4</strong> pairs of shoes
+        </span>
+        <span>
+          <strong>11</strong> zero-mile days
+        </span>
+      </div>
+    </div>
+  </section>
+  <section class="journal-section section">
+    <div class="shell">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">NOTES FROM THE WHITE BLAZES</p>
+          <h2>The trail journal.</h2>
+        </div>
+        <a class="text-link" href="/blog/">
+          All 158 entries <span aria-hidden="true">↗</span>
+        </a>
+      </div>
+      <div class="grid gap-9 md:grid-cols-3">
+        {featured.map((post) => (
+          <PostCard post={post} />
+        ))}
+      </div>
+    </div>
+  </section>
+  <section id="about" class="shell section about-grid">
+    <div>
+      <p class="eyebrow">ABOUT JIMMY · WRITTEN BEFORE THE HIKE</p>
+      <h2>
+        A little less dreaming.
+        <br />
+        <em>A lot more doing.</em>
+      </h2>
+      <p>
+        Hi, I'm Jimmy and I am an Appalachian Trail through-hiker! I've dreamed
+        of hiking the trail for quite sometime, making the decision in 2016
+        after a serious medical scare that made me realize I needed to quit
+        dreaming of hiking and make it a reality. 2022 became the year that
+        would fit with my wife’s and my current and future plans to take a step
+        back from the 9-5 grind of working in rooms without windows and stepping
+        out into the great outdoors to see a part of America that most never
+        venture to experience.
+      </p>
+      <p>
+        The hike starts March 14 and will continue for about 4 to 5 months. You
+        can follow me along the trail with posted tracking updates, photos and
+        blog posts, and maybe even some GoPro footage of critters, scenery and
+        me!
+      </p>
+      <p>
+        As background on The Appalachian Trail, it's a 2193 mile trail marked by
+        white blazes starting on Springer Mountain in Georgia passing through 14
+        states and ending atop Mt Katahdin in Maine. You can find additional
+        information <a href="https://appalachiantrail.org/explore/">here</a>.
+      </p>
+      <p>
+        Time to head North to follow my dream, engage in adventure, and
+        experience a euphoric sense of freedom and contentment!
+      </p>
+      <a class="text-link" href="/gear/">
+        What I carried <span aria-hidden="true">↗</span>
+      </a>
+    </div>
+    <div class="about-photos">
+      <img
+        src={optimized('/images/site/Jimmy.jpg', 960)}
+        alt="Jimmy before his Appalachian Trail adventure"
+        width="960"
+        height="1000"
+        loading="lazy"
+      />
+      <img
+        src={optimized('/images/site/index_page/3.JPG', 480)}
+        alt="Jimmy’s photo collection"
+        width="480"
+        height="600"
+        loading="lazy"
+      />
+    </div>
+  </section>
+  <section class="photo-strip" aria-label="Original photo collection">
+    {[2, 3, 4, 5, 6].map((n) => (
+      <a href="/gallery/" aria-label="Explore the photo gallery">
+        <img
+          src={optimized(`/images/site/index_page/${n}.JPG`, 480)}
+          alt={`Jimmy’s photo collection, photograph ${n}`}
+          width="480"
+          height="500"
+          loading="lazy"
+        />
+      </a>
+    ))}
+  </section>
+  <section class="closing-section shell">
+    <p class="eyebrow">FROM JIMMY’S FINAL REFLECTION</p>
+    <blockquote>“Be safe and be kind to each other!”</blockquote>
+    <span class="signature">— Jimmy / RocketMan</span>
+    <a class="button button-rust" href="/map/">
+      Follow the journey <span aria-hidden="true">↗</span>
+    </a>
+  </section>
+</Layout>

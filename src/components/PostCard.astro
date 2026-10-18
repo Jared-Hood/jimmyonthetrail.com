@@ -1,0 +1,42 @@
+---
+import {
+  type Post,
+  postUrl,
+  cover,
+  optimized,
+  excerpt,
+  formatDate,
+} from '../lib/blog';
+interface Props {
+  post: Post;
+}
+const { post } = Astro.props;
+---
+
+<article class="post-card">
+  <a href={postUrl(post)} class="post-card-image">
+    <img
+      src={optimized(cover(post), 960)}
+      alt={
+        post.data.day === 157
+          ? 'Jimmy celebrating at the Katahdin summit'
+          : `A view from the trail near ${post.data.title}`
+      }
+      loading="lazy"
+      width="960"
+      height="720"
+    />
+    <span class="day-tag">DAY {String(post.data.day).padStart(2, '0')}</span>
+  </a>
+  <div class="post-card-meta">
+    <time datetime={post.data.date}>{formatDate(post.data.date)}</time>
+    <span>{post.data.mileage} miles</span>
+  </div>
+  <h3>
+    <a href={postUrl(post)}>{post.data.title}</a>
+  </h3>
+  <p>{excerpt(post)}</p>
+  <a class="text-link" href={postUrl(post)}>
+    Read the entry <span aria-hidden="true">↗</span>
+  </a>
+</article>

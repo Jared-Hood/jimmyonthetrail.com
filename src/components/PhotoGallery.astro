@@ -1,0 +1,102 @@
+---
+import { optimized } from '../lib/blog';
+interface Props {
+  photos: { src: string; alt: string }[];
+}
+const { photos } = Astro.props;
+---
+
+<div class="gallery-grid">
+  {photos.map((photo, index) => (
+    <a
+      href={photo.src}
+      class="gallery-photo"
+      data-photo={photo.src}
+      data-caption={photo.alt}
+      aria-label={`View ${photo.alt}`}
+    >
+      <img
+        src={optimized(photo.src, 480)}
+        alt={photo.alt}
+        width="480"
+        height="640"
+        loading={index < 4 ? 'eager' : 'lazy'}
+        decoding="async"
+      />
+      <span aria-hidden="true">↗</span>
+    </a>
+  ))}
+</div>
+<dialog class="lightbox" aria-label="Photo viewer">
+  <div class="lightbox-toolbar">
+    <span id="photo-position" aria-live="polite"></span>
+    <a
+      id="photo-original"
+      href="/gallery/"
+      target="_blank"
+      rel="noopener noreferrer"
+    >
+      Original image ↗
+    </a>
+    <button id="photo-close" aria-label="Close photo viewer">
+      ✕
+    </button>
+  </div>
+  <div class="lightbox-stage">
+    <button id="photo-prev" aria-label="Previous photo">
+      ←
+    </button>
+    <figure>
+      <img id="photo-active" src="" alt="" />
+      <figcaption id="photo-caption"></figcaption>
+    </figure>
+    <button id="photo-next" aria-label="Next photo">
+      →
+    </button>
+  </div>
+</dialog>
+<script>
+  const links = Array.from(
+    document.querySelectorAll<HTMLAnchorElement>('[data-photo]'),
+  );
+  const dialog = document.querySelector<HTMLDialogElement>('.lightbox')!;
+  const active = document.querySelector<HTMLImageElement>('#photo-active')!;
+  let index = 0;
+  function show(next: number) {
+    index = (next + links.length) % links.length;
+    active.src = links[index].dataset.photo!;
+    active.alt = links[index].dataset.caption!;
+    document.querySelector('#photo-caption')!.textContent = active.alt;
+    document.querySelector('#photo-position')!.textContent =
+      `${index + 1} / ${links.length}`;
+    (document.querySelector('#photo-original') as HTMLAnchorElement).href =
+      active.src;
+  }
+  links.forEach((link, i) =>
+    link.addEventListener('click', (event) => {
+      event.preventDefault();
+      show(i);
+      dialog.showModal();
+      document.body.classList.add('modal-open');
+    }),
+  );
+  document
+    .querySelector('#photo-close')!
+    .addEventListener('click', () => dialog.close());
+  dialog.addEventListener('close', () =>
+    document.body.classList.remove('modal-open'),
+  );
+  document
+    .querySelector('#photo-prev')!
+    .addEventListener('click', () => show(index - 1));
+  document
+    .querySelector('#photo-next')!
+    .addEventListener('click', () => show(index + 1));
+  dialog.addEventListener('keydown', (event) => {
+    if (event.key === 'ArrowLeft') show(index - 1);
+    if (event.key === 'ArrowRight') show(index + 1);
+  });
+  dialog.addEventListener('click', (event) => {
+    if (event.target === dialog) dialog.close();
+  });
+</script>

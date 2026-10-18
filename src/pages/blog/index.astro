@@ -1,0 +1,161 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import PageIntro from '../../components/PageIntro.astro';
+import {
+  getPosts,
+  postUrl,
+  excerpt,
+  cover,
+  formatDate,
+  optimized,
+} from '../../lib/blog';
+const posts = (await getPosts()).reverse();
+const months = [
+  ...new Set(posts.map((post) => post.data.date.slice(0, 7))),
+].sort();
+---
+
+<Layout
+  title="Trail journal"
+  description="Jimmy’s 2022 Appalachian Trail blog."
+>
+  <PageIntro
+    eyebrow="MARCH — AUGUST 2022"
+    title="The trail journal."
+    description="Big climbs, small towns, and the people along the way. Jimmy’s daily notes from his walk from Georgia to Maine."
+  />
+  <section class="shell journal-archive section-bottom">
+    <div class="journal-tools">
+      <label class="search-label">
+        <span class="sr-only">Search the journal</span>
+        <svg
+          width="19"
+          height="19"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.5"
+          aria-hidden="true"
+        >
+          <circle cx="10" cy="10" r="6" />
+          <path d="m15 15 6 6" />
+        </svg>
+        <input
+          type="search"
+          id="journal-search"
+          placeholder="Search by place, day, or date…"
+        />
+      </label>
+      <label>
+        <span class="sr-only">Filter by month</span>
+        <select id="journal-month">
+          <option value="">Every month</option>
+          {months.map((month) => (
+            <option value={month}>
+              {new Date(`${month}-15T12:00:00Z`).toLocaleDateString('en-US', {
+                month: 'long',
+                timeZone: 'UTC',
+              })}
+            </option>
+          ))}
+        </select>
+      </label>
+      <label>
+        <span class="sr-only">Sort entries</span>
+        <select id="journal-sort">
+          <option value="desc">Latest first</option>
+          <option value="asc">Start at the beginning</option>
+        </select>
+      </label>
+    </div>
+    <p class="results-count" id="journal-count" aria-live="polite">
+      158 entries · Georgia to Maine
+    </p>
+    <div id="journal-entries">
+      {posts.map((post) => (
+        <article
+          class="journal-row"
+          data-day={post.data.day}
+          data-month={post.data.date.slice(0, 7)}
+          data-search={`${post.data.day} ${post.data.title} ${formatDate(post.data.date)} ${post.body}`.toLowerCase()}
+        >
+          <div class="journal-day">
+            <span>DAY</span>
+            <strong>{String(post.data.day).padStart(2, '0')}</strong>
+          </div>
+          <a
+            class="journal-thumb"
+            href={postUrl(post)}
+            tabindex="-1"
+            aria-hidden="true"
+          >
+            <img
+              src={optimized(cover(post), 480)}
+              alt=""
+              loading="lazy"
+              width="480"
+              height="360"
+            />
+          </a>
+          <div class="journal-row-copy">
+            <div class="post-card-meta">
+              <time datetime={post.data.date}>
+                {formatDate(post.data.date)}
+              </time>
+              <span>{post.data.mileage} miles</span>
+            </div>
+            <h2>
+              <a href={postUrl(post)}>{post.data.title}</a>
+            </h2>
+            <p>{excerpt(post, 180)}</p>
+          </div>
+          <a
+            class="round-link"
+            href={postUrl(post)}
+            aria-label={`Read day ${post.data.day}: ${post.data.title}`}
+          >
+            ↗
+          </a>
+        </article>
+      ))}
+    </div>
+    <p id="journal-empty" class="empty-state" hidden>
+      No matching entries.
+    </p>
+  </section>
+  <script>
+    const search = document.querySelector<HTMLInputElement>('#journal-search')!;
+    const month = document.querySelector<HTMLSelectElement>('#journal-month')!;
+    const sort = document.querySelector<HTMLSelectElement>('#journal-sort')!;
+    const list = document.querySelector<HTMLElement>('#journal-entries')!;
+    const rows = Array.from(list.querySelectorAll<HTMLElement>('.journal-row'));
+    function update() {
+      const terms = search.value
+        .trim()
+        .toLowerCase()
+        .split(/\s+/)
+        .filter(Boolean);
+      let count = 0;
+      rows.forEach((row) => {
+        row.hidden =
+          !terms.every((term) => row.dataset.search?.includes(term)) ||
+          (!!month.value && row.dataset.month !== month.value);
+        if (!row.hidden) count++;
+      });
+      document.querySelector('#journal-count')!.textContent =
+        `${count} ${count === 1 ? 'entry' : 'entries'} · Georgia to Maine`;
+      (document.querySelector('#journal-empty') as HTMLElement).hidden =
+        count > 0;
+      [...rows]
+        .sort(
+          (a, b) =>
+            (Number(a.dataset.day) - Number(b.dataset.day)) *
+            (sort.value === 'asc' ? 1 : -1),
+        )
+        .forEach((row) => list.append(row));
+    }
+    search.addEventListener('input', update);
+    month.addEventListener('change', update);
+    sort.addEventListener('change', update);
+  </script>
+</Layout>

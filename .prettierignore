@@ -1,0 +1,7 @@
+node_modules/
+dist/
+.astro/
+.wrangler/
+src/content/blog/
+src/data/trail.json
+package-lock.json

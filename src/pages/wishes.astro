@@ -1,0 +1,52 @@
+---
+import Layout from '../layouts/Layout.astro';
+import PageIntro from '../components/PageIntro.astro';
+import wishes from '../data/wishes.json';
+interface Wish {
+  name: string;
+  message: string;
+}
+const messages: Wish[] = wishes;
+---
+
+<Layout
+  title="Well wishes"
+  description="Well wishes for Jimmy’s Appalachian Trail hike."
+>
+  <PageIntro
+    eyebrow="FRIENDS, FAMILY, AND WORDS OF ENCOURAGEMENT"
+    title="A little trail magic."
+    description="The support that helped Jimmy keep going, all the way to Katahdin."
+  />
+  <section class="shell section-bottom">
+    <div class="wishes-intro">
+      <span aria-hidden="true">♡</span>
+      <blockquote>“I would not of finished without your support.”</blockquote>
+      <p>— Jimmy / RocketMan</p>
+    </div>
+    {messages.length ? (
+      <div class="wishes-grid">
+        {messages.map((wish) => (
+          <figure class="wish">
+            <blockquote>{wish.message}</blockquote>
+            <figcaption>— {wish.name}</figcaption>
+          </figure>
+        ))}
+      </div>
+    ) : (
+      <div class="archive-note">
+        <p class="eyebrow">WELL WISHES ARCHIVE</p>
+        <h2>The encouragement lives on.</h2>
+        <p>
+          The original messages will be added here when the archive is
+          available.
+        </p>
+      </div>
+    )}
+    <div class="text-center mt-12">
+      <a class="text-link" href="/blog/157/">
+        Read about the finish at Katahdin ↗
+      </a>
+    </div>
+  </section>
+</Layout>
