@@ -1,1 +1,354 @@
-[]
+[
+  {
+    "name": "Grant hood",
+    "message": "Dearest father, good luck"
+  },
+  {
+    "name": "Lori Goldsmith",
+    "message": "This is so exciting! I am really looking forward to following your adventure!!"
+  },
+  {
+    "name": "Ben Dover",
+    "message": "Keep poking away at it, no looking back."
+  },
+  {
+    "name": "Diane Sheffe",
+    "message": "Hey. I am a friend of Carol and find it so exciting you are doing this hike.  Be safe and looking forward to more pictures."
+  },
+  {
+    "name": "Ben, Heather, and Carter",
+    "message": "It was so nice talking with you.  Happy Hiking!"
+  },
+  {
+    "name": "Melissa",
+    "message": "Just saw a post about you from my local running store... Aardvark! Thanks for stopping into the Christmas City...I hope you got to see the star lit up at night or maybe even had the chance to hile up to it! Enjoy every step, safe journey!"
+  },
+  {
+    "name": "The Morgan Crew",
+    "message": "You got this- can’t wait to follow your journey, see ya at route 7 and the finish line! Xoxo"
+  },
+  {
+    "name": "Moe T",
+    "message": "Jimmy, Great going, what a adventure of the life time. You’ve inspired lots of people, me included. Keep Rocking"
+  },
+  {
+    "name": "Bill &Lori",
+    "message": "James- Jim- Jimmy- Jimbo - SHIPMATE - best of luck as you begin your amazing journey! We all know it isn’t luck but your training, determination and love of friends and family that will ensure your success. Know your BBBB will miss you and hoist a few in your honor this summer - fair winds and following seas!"
+  },
+  {
+    "name": "Kim Davis Kempf",
+    "message": "Very impressive!!  Be safe!!"
+  },
+  {
+    "name": "Leslie Buck",
+    "message": "Lovin' the posts; prayers for continued safe travels!"
+  },
+  {
+    "name": "Bob Bobarker",
+    "message": "I'm impressed Jim. Very impressed. Watch out for Shooter McGavin. He might try to sabotage you, but I'm sure you can handle him."
+  },
+  {
+    "name": "Brenda Geist",
+    "message": "Best of luck to you. I am excited too follow you on this wonderful trip."
+  },
+  {
+    "name": "Victoria Baselice",
+    "message": "AS COME - no luck needed. You got this"
+  },
+  {
+    "name": "Chris C",
+    "message": "Your stamina is impressive. It was great seeing pictures from Franklin and the Nantahala Outdoor Center. I've visited there a couple times and it brought back fond memories. Stay safe & well."
+  },
+  {
+    "name": "Leslie and Jeff France",
+    "message": "You made it through the White Mtns---best wishes and prayers for safe fun travels for the remainder of your AT adventure!"
+  },
+  {
+    "name": "Howie Feltersnatch",
+    "message": "Its fun watching you do this!"
+  },
+  {
+    "name": "Alex Blakemore",
+    "message": "Have a great time on the trail and hope you outrun the other hikers in bear country. Enjoy your time in the real world"
+  },
+  {
+    "name": "Clay",
+    "message": "Well done Jimmy! It’s been very enjoyable tracking your progress. Killing it!"
+  },
+  {
+    "name": "Kelsey S.",
+    "message": "Amazing dream and challenge to tackle!  Way to go after it. The red needle points North, keep tracking. Stay healthy and safe my friend."
+  },
+  {
+    "name": "Justin Yerbum",
+    "message": "This is something youve been longing for.....take it a little at a time till you've taken it all."
+  },
+  {
+    "name": "Griffin Cox",
+    "message": "Good luck"
+  },
+  {
+    "name": "Brins",
+    "message": "Jimmy, excellent job. You got this, keep it going!!"
+  },
+  {
+    "name": "Leslie Buck",
+    "message": "You're now in VT!? Bein' a MA girl and hiking several mtns up there in my younger years, you there is bringing back some memories! Continued prayers for safety, energy, et al---may Mt. 'Wa' be having some great weather as you get there!"
+  },
+  {
+    "name": "Skip Forplay",
+    "message": "Wow.....love the way you just go get the things you want."
+  },
+  {
+    "name": "Mike Litoris",
+    "message": "Jim, keep on working at it."
+  },
+  {
+    "name": "Ronnie Reber",
+    "message": "Happy walking 😂"
+  },
+  {
+    "name": "Skip",
+    "message": "Forplay"
+  },
+  {
+    "name": "Lisa & Dan",
+    "message": "Love the updated blog Jim!  Pictures  are great too.  Wishing you safe travels and happy trails. 🚀"
+  },
+  {
+    "name": "Leslie Buck",
+    "message": "Soooooo excited for you, and will look forward to the posts. Enjoy, prayers for safety/protection---Godspeed!"
+  },
+  {
+    "name": "Bill and Ginny",
+    "message": "Still thinking about you Jim!  Love your Blog articles!!"
+  },
+  {
+    "name": "Hugh Jass",
+    "message": "Good luck Jimmy!"
+  },
+  {
+    "name": "Duey Tickle",
+    "message": "All your preparation is paying off!"
+  },
+  {
+    "name": "Brian L",
+    "message": "You’re going to crush it Jimmy!  Good luck on the trail!"
+  },
+  {
+    "name": "Codi",
+    "message": "Cheers, and happy adventuring! It was so awesome meeting you at Aardvark. Thank you for sharing your exciting journey."
+  },
+  {
+    "name": "Sarah Diminuco",
+    "message": "Looks amazing! I did a couple miles of the AT in the smokies near Mt Cammerer and had some great views. Watch out for bears!"
+  },
+  {
+    "name": "Jay and Ronda",
+    "message": "Jim, it's exciting for us to follow you as you achieve this goal.We will be following with encouragement, envy and admiration.  Go get this buddy...stay safe...we love ya."
+  },
+  {
+    "name": "Michelle",
+    "message": "Have fun 🤪"
+  },
+  {
+    "name": "Cliff H.",
+    "message": "Right on brotha! Keep trucking!"
+  },
+  {
+    "name": "Bobby beats",
+    "message": "You can do it! Keep on keeping on"
+  },
+  {
+    "name": "A Friend of the Pink House People",
+    "message": "Ever since MAG shared your blog with me, I've been following your journey with excitement and admiration.  Thanks for sharing your experiences and I can't wait to see your picture on top of Mt. Katahdin!"
+  },
+  {
+    "name": "Terri M.",
+    "message": "Day 12 pics look good!! Keep 'em coming!!"
+  },
+  {
+    "name": "Genda",
+    "message": "Updates are awesome Dr. Hood! Hurry up though I need you to code some stuff for me 🤣"
+  },
+  {
+    "name": "Leslie Buck",
+    "message": "Hi Jim---Jeff and I are lovin' your pics/journey---continued prayers/best wishes...for the next half, and for your 27th and beyond wedding anniversary/ies!"
+  },
+  {
+    "name": "Dennis",
+    "message": "We old guys will do it thru you. What an adventure!"
+  },
+  {
+    "name": "Georgia Spry",
+    "message": "Thank you for letting us share in your Grand Adventure.  I hope you are writing an Adventure Journal.  That will be an amazing read! May wind be always at your back!🌈🍀"
+  },
+  {
+    "name": "Jared Hood",
+    "message": "Good Luck Dad!"
+  },
+  {
+    "name": "Jill Wagner",
+    "message": "GOOOOO JIM!! So impressed.. you are a rock star!!!"
+  },
+  {
+    "name": "John & Holly",
+    "message": "That’s amazing! Good luck on your journey and looking forward to following your adventures."
+  },
+  {
+    "name": "Denise Alessi",
+    "message": "Have an amazing time!  Really enjoying your blog"
+  },
+  {
+    "name": "Mike Oxbig",
+    "message": "This is very impressive....everyone knows you had it in you."
+  },
+  {
+    "name": "Travis Walden",
+    "message": "Walk tall and safe travels!!"
+  },
+  {
+    "name": "Jerry O'Sullivan",
+    "message": "Hi Jim, I've been a follower of AT though hiker books for years, wish you the best of luck! Jerry O"
+  },
+  {
+    "name": "Tom Dietzler",
+    "message": "Hi Jimmy, we met your lovely wife, Heidi and Carol at a winery in February. My daughter and son-in-law were with me and we had a great time visiting with your family. Best wishes to you from Wisconsin! Sorry if I did choose a creative name for myself, as it appears that a lot of the good ones were taken. All the best to you on your journey, thanks for sharing it with the world!"
+  },
+  {
+    "name": "Bill and Ginny",
+    "message": "Love the Blog pictures!  Hope the legs heal quickly and you get a little well deserved R&R!  We are all rooting for you!  Awesome endeavor you are doing!"
+  },
+  {
+    "name": "Alonna",
+    "message": "Slow down, speedy! Have fun!"
+  },
+  {
+    "name": "Tessa Kolmus",
+    "message": "Have fun!"
+  },
+  {
+    "name": "Ryan",
+    "message": "Ok, so now I believe you are actually going to go.. I’m impressed.   It looks amazing!"
+  },
+  {
+    "name": "Sandy Vaghertz",
+    "message": "Oh my...this is really happening. Wow...."
+  },
+  {
+    "name": "Mike Unhertz",
+    "message": "The deeper you make your way into it, the more you feel it. You can do it."
+  },
+  {
+    "name": "Tim and Linda",
+    "message": "Best wishes Jim!"
+  },
+  {
+    "name": "The Pink House People",
+    "message": "Jim you are stunning! Max and Warren did 8 miles on the Trail this past weekend and were blown away by its beauty! We cannot wait to gather in person and hear of the details of your adventure!"
+  },
+  {
+    "name": "Wilma Schlongfit",
+    "message": "Some things you just dont know can be done until you try....keep trying till you get er done."
+  },
+  {
+    "name": "Kate",
+    "message": "Jimmy you rock! Thanks for swinging in to Aardvark today to grab some new goats! You're awesome."
+  },
+  {
+    "name": "Harry Nadsac",
+    "message": "Way to go Jim....looks like you got what it takes!"
+  },
+  {
+    "name": "Anita Weiner",
+    "message": "Follow your dreams and grab what's yours"
+  },
+  {
+    "name": "Jerry O",
+    "message": "You got this Jim!!"
+  },
+  {
+    "name": "Rick Sheffe",
+    "message": "Jimmy, when you getn"
+  },
+  {
+    "name": "Hal and Vicky",
+    "message": "We will be following your journey and hope to see you along the way!"
+  },
+  {
+    "name": "Mom Werner",
+    "message": "Congrats on crossing that half way mark!  IFooting for you all the way and I know you will finish. Still waiting for that bear photo!!  Huggs!’"
+  },
+  {
+    "name": "MaryAnne & Warren",
+    "message": "This is amazingly ambitious — you rock Jim!"
+  },
+  {
+    "name": "Victoria Baselice",
+    "message": "THE TIME C"
+  },
+  {
+    "name": "Bill-Ginny",
+    "message": "You Rock!!  We plan on meeting you somewhere along the trail, we will make sure we bring some libations to celebrate your efforts!!  Remember no three leaf toilet paper 😳"
+  },
+  {
+    "name": "Lisa and Dan",
+    "message": "Good luck as you start your journey.  We will be following your progress."
+  },
+  {
+    "name": "Peg Myarse",
+    "message": "Push through the pain.....you can do this."
+  },
+  {
+    "name": "Corey Anderson",
+    "message": "Very impressive jimmy, it’s been fun following your journey. Best of luck!!"
+  },
+  {
+    "name": "MaryAnne and Warren",
+    "message": "Half-way there! Awesome! I have a friend in Salisbury, CT whose backyard backs up to the trail. So when you get that far, let me know if you need anything!"
+  },
+  {
+    "name": "Susan Kauffman",
+    "message": "Brad and I are totally impressed ! How many talk about doing this and here you are living the dream ! Great job ! All the Kauffman’s have been to the top"
+  },
+  {
+    "name": "Lori and Bill",
+    "message": "Can’t wait until you finish so that you can tell us about your adventure and all of the people that you’ve me (that we don’t know 😂)"
+  },
+  {
+    "name": "Whitey",
+    "message": "best of times on the trail.  stay safe my friend."
+  },
+  {
+    "name": "Rick Sheffe",
+    "message": "Jimmy...when you get to Pine Grove Furnace, give me a call. You mom in law has my number.  Beer, food, shower awaits if you need it."
+  },
+  {
+    "name": "Leslie and Jeff France",
+    "message": "Hi--so glad 'Jimmy on the Trail' is now home, safe and sound! Sorry we couldn't make your surprise return party--know we were there in spirit! Hope to see you soon!  :)"
+  },
+  {
+    "name": "Bill and Ginny",
+    "message": "Looks like your moving right along!  Nice!!"
+  },
+  {
+    "name": "whitey",
+    "message": "Your in your orbit- mission posable"
+  },
+  {
+    "name": "Todd R.",
+    "message": "Wow!  Very impressed.  You are doing great, keep going strong!"
+  },
+  {
+    "name": "Cooksie",
+    "message": "Great to see you're up and running. Have a great time!"
+  },
+  {
+    "name": "Amanda Butkis",
+    "message": "Stay motivated, we all know how much you want this, go get it.."
+  },
+  {
+    "name": "Shelly Hood",
+    "message": "Excited for you as you embark on this journey and look forward to you conquering those mountains and then coming home. Love you! ❤️"
+  }
+]

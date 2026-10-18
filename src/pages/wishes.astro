@@ -7,46 +7,118 @@ interface Wish {
   message: string;
 }
 const messages: Wish[] = wishes;
+const initials = (name: string) =>
+  name
+    .split(/\s+/)
+    .filter((word) => !['&', 'and'].includes(word.toLocaleLowerCase()))
+    .slice(0, 2)
+    .map((word) => word[0].toUpperCase())
+    .join('');
 ---
 
 <Layout
   title="Well wishes"
-  description="Well wishes for Jimmy’s Appalachian Trail hike."
+  description={`${messages.length} original well wishes for Jimmy’s 2022 Appalachian Trail hike.`}
 >
   <PageIntro
     eyebrow="FRIENDS, FAMILY, AND WORDS OF ENCOURAGEMENT"
     title="A little trail magic."
     description="The support that helped Jimmy keep going, all the way to Katahdin."
   />
-  <section class="shell section-bottom">
+  <section class="shell section-bottom" aria-label="Well wishes archive">
     <div class="wishes-intro">
       <span aria-hidden="true">♡</span>
       <blockquote>“I would not of finished without your support.”</blockquote>
       <p>— Jimmy / RocketMan</p>
     </div>
-    {messages.length ? (
-      <div class="wishes-grid">
-        {messages.map((wish) => (
-          <figure class="wish">
-            <blockquote>{wish.message}</blockquote>
-            <figcaption>— {wish.name}</figcaption>
-          </figure>
-        ))}
-      </div>
-    ) : (
-      <div class="archive-note">
-        <p class="eyebrow">WELL WISHES ARCHIVE</p>
-        <h2>The encouragement lives on.</h2>
-        <p>
-          The original messages will be added here when the archive is
-          available.
-        </p>
-      </div>
-    )}
-    <div class="text-center mt-12">
+    <div class="wishes-toolbar" data-wishes-tools hidden>
+      <label class="wishes-search">
+        <svg
+          width="19"
+          height="19"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.5"
+          aria-hidden="true"
+        >
+          <circle cx="10" cy="10" r="6" />
+          <path d="m15 15 6 6" />
+        </svg>
+        <span class="sr-only">Search well wishes</span>
+        <input
+          type="search"
+          id="wishes-search"
+          placeholder="Find a name or a message…"
+          aria-controls="well-wishes"
+        />
+      </label>
+      <p
+        class="wishes-results"
+        id="wishes-results"
+        aria-live="polite"
+        aria-atomic="true"
+      >
+        {messages.length} well wishes
+      </p>
+    </div>
+    <div class="wishes-wall" id="well-wishes">
+      {messages.map((wish) => (
+        <figure
+          class="wish"
+          data-wish
+          data-search={`${wish.name} ${wish.message}`.toLocaleLowerCase()}
+        >
+          <span class="wish-quote" aria-hidden="true">
+            “
+          </span>
+          <blockquote>
+            <p>{wish.message}</p>
+          </blockquote>
+          <figcaption>
+            <span class="wish-initials" aria-hidden="true">
+              {initials(wish.name)}
+            </span>
+            <span>{wish.name}</span>
+          </figcaption>
+        </figure>
+      ))}
+    </div>
+    <p class="wishes-empty" id="wishes-empty" hidden>
+      No matching messages. Try another name or word.
+    </p>
+    <div class="wishes-end">
+      <span class="eyebrow">GEORGIA TO MAINE · 2022</span>
       <a class="text-link" href="/blog/157/">
         Read about the finish at Katahdin ↗
       </a>
     </div>
   </section>
+  <script>
+    const search = document.querySelector<HTMLInputElement>('#wishes-search')!;
+    const cards = Array.from(
+      document.querySelectorAll<HTMLElement>('[data-wish]'),
+    );
+    const count = document.querySelector<HTMLElement>('#wishes-results')!;
+    const empty = document.querySelector<HTMLElement>('#wishes-empty')!;
+    document.querySelector<HTMLElement>('[data-wishes-tools]')!.hidden = false;
+    search.addEventListener('input', () => {
+      const terms = search.value
+        .trim()
+        .toLocaleLowerCase()
+        .split(/\s+/)
+        .filter(Boolean);
+      let visible = 0;
+      cards.forEach((card) => {
+        card.hidden = !terms.every((term) =>
+          card.dataset.search!.includes(term),
+        );
+        if (!card.hidden) visible++;
+      });
+      count.textContent = terms.length
+        ? `${visible} of ${cards.length} well wishes`
+        : `${cards.length} well wishes`;
+      empty.hidden = visible > 0;
+    });
+  </script>
 </Layout>

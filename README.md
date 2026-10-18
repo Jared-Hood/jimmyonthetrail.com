@@ -37,11 +37,11 @@ To edit an entry, update its Markdown body or frontmatter and rebuild. `src/cont
 
 After adding/changing photos, run `npm run images`. The image helper uses the Sharp development dependency, to update generated WebP copies. Commit the image derivatives along with originals so Cloudflare only needs to run the site build.
 
-## Well wishes: pending source data
+## Well wishes archive
 
-The original messages were stored exclusively in Firestore’s `comments` collection and were not included in the old repository. Public export requests returned `PERMISSION_DENIED`. No messages have been fabricated. The page currently displays a short archive notice; there is no submission form.
+All 88 original well wishes have been imported from the supplied Firebase HTML export into `src/data/wishes.json`. Names, wording, repeated contributors, and export order are preserved; HTML entities are decoded and surrounding whitespace is trimmed. The page renders the messages as escaped text in a responsive, searchable archive. It has no submission form or Firebase connection.
 
-When the export is available, replace `src/data/wishes.json` with an array:
+To add or edit a message, use the same array format:
 
 ```json
 [{ "name": "The original author", "message": "The original message" }]
