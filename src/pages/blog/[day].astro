@@ -1,46 +1,30 @@
 ---
 import type { GetStaticPaths } from 'astro';
-import { getImage } from 'astro:assets';
+import { Image, getImage } from 'astro:assets';
 import { render } from 'astro:content';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import PhotoGrid from '../../components/PhotoGrid.astro';
 import JsonLd from '../../components/JsonLd.astro';
+import DayCard from '../../components/DayCard.astro';
 import { hiker, site } from '../../data/site';
-import {
-  TRAIL_TOTAL_MILES,
-  formatDate,
-  formatMiles,
-  getDays,
-  isoDate,
-  resolveDayImage,
-  type Day,
-} from '../../lib/days';
+import { formatDate, formatMiles, getDayInfo, isoDate, resolveDayImage, type DayInfo } from '../../lib/days';
 
 export const getStaticPaths = (async () => {
-  const days = await getDays();
-  let runningMiles = 0;
-  return days.map((entry, index) => {
-    runningMiles += entry.data.mileage;
-    return {
-      params: { day: String(entry.data.day) },
-      props: {
-        entry,
-        milesSoFar: runningMiles,
-        prev: index > 0 ? days[index - 1] : undefined,
-        next: index < days.length - 1 ? days[index + 1] : undefined,
-      },
-    };
-  });
+  const days = await getDayInfo();
+  return days.map((info, index) => ({
+    params: { day: String(info.entry.data.day) },
+    props: { info, prev: days[index - 1], next: days[index + 1] },
+  }));
 }) satisfies GetStaticPaths;
 
 interface Props {
-  entry: Day;
-  milesSoFar: number;
-  prev?: Day;
-  next?: Day;
+  info: DayInfo;
+  prev?: DayInfo;
+  next?: DayInfo;
 }
 
-const { entry, milesSoFar, prev, next } = Astro.props;
+const { info, prev, next } = Astro.props;
+const { entry, state, milesSoFar, milesToGo } = info;
 const { day, name, date, lat, long, mileage, altitude, images } = entry.data;
 
 const description = `On day ${day} I traveled through ${name}!`;
@@ -49,6 +33,7 @@ const hasText = Boolean(entry.body?.trim());
 const { Content } = await render(entry);
 
 const photos = images.map((image) => ({ src: resolveDayImage(image.src), alt: image.alt }));
+const [lead, ...morePhotos] = photos;
 
 const siteUrl = Astro.site ?? new URL(site.url);
 const url = new URL(`/blog/${day}`, siteUrl).href;
@@ -89,10 +74,10 @@ const coordinates = `${Math.abs(lat).toFixed(4)}° ${lat >= 0 ? 'N' : 'S'}, ${Ma
 <BaseLayout page={page} image={photos[0]?.src} imageAlt={photos[0]?.alt}>
   <JsonLd slot="head" data={[jsonLd, breadcrumbs]} />
 
-  <article class="pb-section">
-    <header class="border-b border-cream/15 pt-10 pb-10 lg:pt-14 lg:pb-14">
-      <div class="page-container">
-        <nav aria-label="Breadcrumb" class="mb-10 text-sm">
+  <article class="pb-10 md:pb-16">
+    <header class:list={['border-b border-cream/15', !lead && 'bg-bark/40']}>
+      <div class:list={['container mx-auto max-w-6xl px-4 sm:px-6', lead ? 'pt-6 pb-6 md:pt-8' : 'pt-6 pb-8 md:pt-8 md:pb-12']}>
+        <nav aria-label="Breadcrumb" class="mb-6 text-sm md:mb-8">
           <ol class="flex items-center gap-2 text-cream-400">
             <li><a href="/blog" class="hover:text-cream">Blog</a></li>
             <li aria-hidden="true" class="text-cream-600">/</li>
@@ -100,91 +85,97 @@ const coordinates = `${Math.abs(lat).toFixed(4)}° ${lat >= 0 ? 'N' : 'S'}, ${Ma
           </ol>
         </nav>
 
-        <p class="eyebrow mb-4">Day {day}{day === 0 && ' · Approach trail'}</p>
-        <h1 class="max-w-4xl font-display text-3xl font-normal text-cream sm:text-[clamp(2.75rem,1.8rem+3vw,4.25rem)] sm:leading-none">
-          {name}
-        </h1>
-
-        <dl class="mt-10 grid grid-cols-2 gap-x-8 gap-y-6 sm:flex sm:flex-wrap sm:gap-x-12">
-          <div class="border-l border-rust-400 pl-4">
-            <dt class="text-xs font-medium tracking-[0.14em] text-cream-400 uppercase">Date</dt>
-            <dd class="mt-1 text-cream"><time datetime={isoDate(date)}>{formatDate(date)}</time></dd>
-          </div>
-          <div class="border-l border-rust-400 pl-4">
-            <dt class="text-xs font-medium tracking-[0.14em] text-cream-400 uppercase">Miles today</dt>
-            <dd class="mt-1 text-cream tabular-nums">{formatMiles(mileage)}</dd>
-          </div>
-          <div class="border-l border-rust-400 pl-4">
-            <dt class="text-xs font-medium tracking-[0.14em] text-cream-400 uppercase">Trail miles so far</dt>
-            <dd class="mt-1 text-cream tabular-nums">
-              {formatMiles(Math.round(milesSoFar * 10) / 10)} <span class="text-cream-400">/ {formatMiles(TRAIL_TOTAL_MILES)}</span>
-            </dd>
-          </div>
+        <div class:list={['flex gap-5 md:gap-8', lead ? 'items-end' : 'items-end md:items-center']}>
           {
-            altitude !== undefined && (
-              <div class="border-l border-rust-400 pl-4">
-                <dt class="text-xs font-medium tracking-[0.14em] text-cream-400 uppercase">Elevation</dt>
-                <dd class="mt-1 text-cream tabular-nums">{Math.round(altitude).toLocaleString('en-US')} ft</dd>
-              </div>
+            !lead && (
+              <p class="font-display text-[clamp(4.5rem,3rem+7vw,9rem)] leading-[0.8] text-rust-300/90" aria-hidden="true">
+                {day}
+              </p>
             )
           }
-          <div class="col-span-2 border-l border-rust-400 pl-4 sm:col-span-1">
-            <dt class="text-xs font-medium tracking-[0.14em] text-cream-400 uppercase">Location</dt>
-            <dd class="mt-1 text-cream tabular-nums">
-              <span class="sr-only">Latitude {lat}, longitude {long}: </span><span aria-hidden="true">{coordinates}</span>
-              <a href="/map" class="ml-3 text-sm font-medium whitespace-nowrap text-rust-300 underline decoration-rust-400/60 underline-offset-4 hover:text-cream">
-                See on the map
-              </a>
-            </dd>
+          <div>
+            <p class="eyebrow mb-3">Day {day} &middot; {state}{day === 0 && ' · Approach trail'}</p>
+            <h1 class="page-title max-w-4xl">{name}</h1>
+            <p class="mt-3 text-sm text-cream-400">
+              <time datetime={isoDate(date)}>{formatDate(date)}</time>
+            </p>
           </div>
-        </dl>
+        </div>
       </div>
     </header>
 
-    <div class="page-container pt-block">
-      {
-        hasText ? (
-          <div class="prose prose-trail">
-            <Content />
+    {
+      lead && (
+        <figure class="container mx-auto max-w-6xl mt-6 px-4 sm:px-6">
+          <div class="flex justify-center overflow-hidden rounded-photo bg-bark">
+            <Image
+              src={lead.src}
+              alt={lead.alt}
+              format="webp"
+              widths={[640, 960, 1280, 1600, 2000].filter((w) => w <= lead.src.width)}
+              width={Math.min(lead.src.width, 2000)}
+              quality={72}
+              loading="eager"
+              fetchpriority="high"
+              sizes="(min-width: 72rem) 1104px, calc(100vw - 2rem)"
+              class="max-h-[75vh] w-auto object-contain"
+            />
           </div>
-        ) : (
-          <p class="text-cream-400">No journal notes for this day.</p>
+          <figcaption class="mt-2 text-xs text-cream-400">{lead.alt}</figcaption>
+        </figure>
+      )
+    }
+
+    <div class="container mx-auto max-w-6xl px-4 sm:px-6">
+      <dl class="mt-6 grid grid-cols-2 gap-px overflow-hidden rounded-photo border border-cream/15 bg-cream/15 sm:grid-cols-3 lg:grid-cols-5">
+        {
+          [
+            { label: 'Day', value: String(day) },
+            { label: 'Miles today', value: formatMiles(mileage) },
+            { label: 'State', value: state },
+            { label: 'Trail miles so far', value: formatMiles(milesSoFar) },
+            { label: 'To Katahdin', value: `${formatMiles(milesToGo)} mi` },
+          ].map((stat, i) => (
+            <div class:list={['bg-ink px-4 py-3', i === 4 && 'col-span-2 sm:col-span-1']}>
+              <dt class="text-[0.7rem] font-medium tracking-[0.14em] text-cream-400 uppercase">{stat.label}</dt>
+              <dd class="mt-1 text-lg font-medium text-cream tabular-nums">{stat.value}</dd>
+            </div>
+          ))
+        }
+      </dl>
+      <p class="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-xs text-cream-400 tabular-nums">
+        {altitude !== undefined && <span>Elevation {Math.round(altitude).toLocaleString('en-US')} ft</span>}
+        <span>
+          <span class="sr-only">Latitude {lat}, longitude {long}: </span><span aria-hidden="true">{coordinates}</span>
+        </span>
+        <a href="/map" class="font-medium text-rust-300 underline decoration-rust-400/60 underline-offset-4 hover:text-cream">
+          See on the map
+        </a>
+      </p>
+
+      <div class="pt-8 md:pt-10">
+        {
+          hasText ? (
+            <div class="prose prose-trail">
+              <Content />
+            </div>
+          ) : (
+            <p class="text-cream-400">No journal notes for this day.</p>
+          )
+        }
+      </div>
+
+      {
+        morePhotos.length > 0 && (
+          <div class="mt-8 md:mt-12" data-reveal>
+            <PhotoGrid photos={morePhotos} label={`More photos from day ${day}`} />
+          </div>
         )
       }
 
-      {
-        photos.length > 0 && (
-          <div class="mt-block">
-            <PhotoGrid photos={photos} label={`Photos from day ${day}`} />
-          </div>
-        )
-      }
-
-      <nav aria-label="Day navigation" class="mt-block grid grid-cols-2 gap-4 border-t border-cream/15 pt-8">
-        <div>
-          {
-            prev && (
-              <a href={`/blog/${prev.data.day}`} class="group block">
-                <span class="text-xs font-medium tracking-[0.14em] text-cream-400 uppercase">← Day {prev.data.day}</span>
-                <span class="mt-1 block text-cream group-hover:underline group-hover:decoration-rust-400 group-hover:underline-offset-4">
-                  {prev.data.name}
-                </span>
-              </a>
-            )
-          }
-        </div>
-        <div class="text-right">
-          {
-            next && (
-              <a href={`/blog/${next.data.day}`} class="group block">
-                <span class="text-xs font-medium tracking-[0.14em] text-cream-400 uppercase">Day {next.data.day} →</span>
-                <span class="mt-1 block text-cream group-hover:underline group-hover:decoration-rust-400 group-hover:underline-offset-4">
-                  {next.data.name}
-                </span>
-              </a>
-            )
-          }
-        </div>
+      <nav aria-label="Day navigation" class="mt-8 grid grid-cols-1 gap-3 border-t border-cream/15 pt-6 sm:grid-cols-2 md:mt-12 md:pt-8">
+        <div>{prev && <DayCard day={prev.entry} state={prev.state} label="Previous day" />}</div>
+        <div>{next && <DayCard day={next.entry} state={next.state} label="Next day" align="end" />}</div>
       </nav>
     </div>
   </article>

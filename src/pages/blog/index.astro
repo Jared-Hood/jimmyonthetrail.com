@@ -2,11 +2,21 @@
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import PageHeader from '../../components/PageHeader.astro';
 import JsonLd from '../../components/JsonLd.astro';
+import DayCard from '../../components/DayCard.astro';
 import { hiker, pages, site } from '../../data/site';
-import { formatMiles, formatShortDate, getDays, isoDate } from '../../lib/days';
+import { formatShortDate, getDayInfo, isoDate } from '../../lib/days';
+import { TRAIL_STATES } from '../../lib/states';
 
 // Day 0 (the approach trail) has its own page but stays out of the index, as on the old site.
-const days = (await getDays()).filter((entry) => entry.data.day > 0);
+const days = (await getDayInfo()).filter((info) => info.entry.data.day > 0);
+
+// Group by state in trail order (Georgia to Maine). Where the trail follows a state line
+// (e.g. North Carolina / Tennessee) a state's days are not all consecutive.
+const groups = TRAIL_STATES.map((state) => ({
+  state,
+  id: `state-${state.toLowerCase().replace(/\s+/g, '-')}`,
+  days: days.filter((info) => info.state === state),
+})).filter((group) => group.days.length > 0);
 
 const blogUrl = `${site.url}/blog`;
 const blogLd = {
@@ -17,7 +27,7 @@ const blogLd = {
   description: pages.blog.description,
   inLanguage: 'en',
   author: { '@type': 'Person', name: hiker.name, alternateName: hiker.trailName, url: `${site.url}/` },
-  blogPost: days.map(({ data }) => ({
+  blogPost: days.map(({ entry: { data } }) => ({
     '@type': 'BlogPosting',
     headline: `Day ${data.day}, ${data.name}`,
     datePublished: isoDate(data.date),
@@ -25,21 +35,37 @@ const blogLd = {
   })),
 };
 
-const columns = [
-  { key: 'day', label: 'Day', type: 'number', align: 'left' },
-  { key: 'name', label: 'Location', type: 'text', align: 'left' },
-  { key: 'date', label: 'Date', type: 'text', align: 'left' },
-  { key: 'miles', label: 'Miles', type: 'number', align: 'right' },
-] as const;
+const range = (list: typeof days) => {
+  const first = list[0].entry.data;
+  const last = list.at(-1)!.entry.data;
+  return `${formatShortDate(first.date)} to ${formatShortDate(last.date)}`;
+};
 ---
 
 <BaseLayout page={pages.blog}>
   <JsonLd slot="head" data={blogLd} />
-  <PageHeader title="Blog" eyebrow={`${days.length} days, Georgia to Maine`} />
+  <PageHeader title="Blog" eyebrow={`${days.length} days, Georgia to Maine`}>
+    <nav aria-label="Jump to a state" class="mt-6">
+      <ul class="flex flex-wrap gap-2">
+        {
+          groups.map((group) => (
+            <li>
+              <a
+                href={`#${group.id}`}
+                class="inline-flex items-center gap-1.5 rounded-photo border border-cream/20 px-2.5 py-1.5 text-xs font-medium tracking-[0.06em] text-cream-200 hover:border-cream/50 hover:text-cream"
+              >
+                {group.state} <span class="text-cream-400 tabular-nums">{group.days.length}</span>
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </nav>
+  </PageHeader>
 
-  <section class="pt-10 pb-section" aria-label="Trail journal entries">
-    <div class="page-container">
-      <div class="mb-6 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+  <section class="pt-6 pb-10 md:pt-8 md:pb-16" aria-label="Trail journal entries">
+    <div class="container mx-auto max-w-6xl px-4 sm:px-6">
+      <div class="mb-8 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div class="w-full sm:max-w-sm">
           <label for="day-search" class="mb-2 block text-xs font-medium tracking-[0.14em] text-cream-400 uppercase">
             Search
@@ -57,70 +83,32 @@ const columns = [
         </p>
       </div>
 
-      <div class="-mx-[var(--spacing-gutter)] overflow-x-auto px-[var(--spacing-gutter)]">
-        <table id="day-table" class="w-full border-collapse text-left">
-          <caption class="sr-only">
-            Trail journal days. Column headers are buttons that sort the table.
-          </caption>
-          <thead>
-            <tr class="border-b border-cream/40">
-              {
-                columns.map((column) => (
-                  <th
-                    scope="col"
-                    aria-sort={column.key === 'day' ? 'ascending' : 'none'}
-                    class:list={[
-                      'py-3 pr-4 font-medium last:pr-0',
-                      column.key === 'day' && 'w-14 sm:w-20',
-                      column.key === 'date' && 'w-20 sm:w-36',
-                      column.key === 'miles' && 'hidden w-24 text-right sm:table-cell',
-                    ]}
+      <div class="space-y-10 md:space-y-12">
+        {
+          groups.map((group) => (
+            <section id={group.id} data-group data-reveal class="scroll-mt-6" aria-labelledby={`${group.id}-title`}>
+              <div class="mb-4 flex flex-wrap items-baseline gap-x-4 gap-y-1 border-b border-cream/25 pb-2">
+                <h2 id={`${group.id}-title`} class="font-display text-2xl leading-none text-cream md:text-[1.75rem]">
+                  {group.state}
+                </h2>
+                <p class="text-xs text-cream-400 tabular-nums">
+                  <span data-group-count>{group.days.length}</span> {group.days.length === 1 ? 'day' : 'days'} &middot;{' '}
+                  {range(group.days)}
+                </p>
+              </div>
+              <ul class="grid grid-cols-1 gap-2 sm:grid-cols-2 sm:gap-3 lg:grid-cols-3 xl:grid-cols-4">
+                {group.days.map((info) => (
+                  <li
+                    data-day-card
+                    data-search={`day ${info.entry.data.day} ${info.entry.data.name} ${formatShortDate(info.entry.data.date)} ${info.state}`.toLowerCase()}
                   >
-                    <button
-                      type="button"
-                      data-sort={column.key}
-                      data-type={column.type}
-                      class:list={[
-                        'group inline-flex items-center gap-2 text-xs tracking-[0.14em] text-cream-400 uppercase hover:text-cream',
-                        column.align === 'right' && 'flex-row-reverse',
-                      ]}
-                    >
-                      {column.label}
-                      <span class="w-3 text-rust-300" data-indicator aria-hidden="true" />
-                    </button>
-                  </th>
-                ))
-              }
-            </tr>
-          </thead>
-          <tbody>
-            {
-              days.map(({ data }) => (
-                <tr
-                  class="group relative border-b border-cream/10 transition-colors hover:bg-bark/60 focus-within:bg-bark/60"
-                  data-day={data.day}
-                  data-name={data.name}
-                  data-date={isoDate(data.date)}
-                  data-miles={data.mileage}
-                >
-                  <td class="py-3 pr-4 font-medium text-rust-300 tabular-nums">{data.day}</td>
-                  <td class="py-3 pr-4">
-                    <a
-                      href={`/blog/${data.day}`}
-                      class="text-cream after:absolute after:inset-0 group-hover:underline group-hover:decoration-rust-400 group-hover:underline-offset-4"
-                    >
-                      {data.name}
-                    </a>
-                  </td>
-                  <td class="py-3 pr-4 whitespace-nowrap text-cream-400 tabular-nums">
-                    <time datetime={isoDate(data.date)}>{formatShortDate(data.date)}<span class="hidden sm:inline">, {data.date.getUTCFullYear()}</span></time>
-                  </td>
-                  <td class="hidden py-3 text-right text-cream-200 tabular-nums sm:table-cell">{formatMiles(data.mileage)}</td>
-                </tr>
-              ))
-            }
-          </tbody>
-        </table>
+                    <DayCard day={info.entry} class="h-full" />
+                  </li>
+                ))}
+              </ul>
+            </section>
+          ))
+        }
       </div>
       <p id="no-results" class="hidden py-10 text-center text-cream-400">No days match that search.</p>
     </div>
@@ -128,63 +116,27 @@ const columns = [
 </BaseLayout>
 
 <script>
-  const table = document.getElementById('day-table') as HTMLTableElement | null;
   const search = document.getElementById('day-search') as HTMLInputElement | null;
   const count = document.getElementById('day-count');
   const empty = document.getElementById('no-results');
+  const cards = Array.from(document.querySelectorAll<HTMLElement>('[data-day-card]'));
+  const groups = Array.from(document.querySelectorAll<HTMLElement>('[data-group]'));
 
-  if (table && search) {
-    const tbody = table.tBodies[0];
-    const rows = Array.from(tbody.rows);
-    const total = rows.length;
-    const buttons = Array.from(table.querySelectorAll<HTMLButtonElement>('button[data-sort]'));
-    let sortKey = 'day';
-    let direction: 'ascending' | 'descending' = 'ascending';
-
-    const value = (row: HTMLTableRowElement, key: string, type: string) =>
-      type === 'number' ? Number(row.dataset[key]) : (row.dataset[key] ?? '').toLowerCase();
-
-    const render = () => {
-      for (const button of buttons) {
-        const th = button.closest('th');
-        const active = button.dataset.sort === sortKey;
-        th?.setAttribute('aria-sort', active ? direction : 'none');
-        const indicator = button.querySelector('[data-indicator]');
-        if (indicator) indicator.textContent = active ? (direction === 'ascending' ? '↑' : '↓') : '';
-      }
-    };
-
-    const sortBy = (key: string, type: string) => {
-      direction = key === sortKey && direction === 'ascending' ? 'descending' : 'ascending';
-      sortKey = key;
-      const factor = direction === 'ascending' ? 1 : -1;
-      rows.sort((a, b) => {
-        const x = value(a, key, type);
-        const y = value(b, key, type);
-        if (x < y) return -1 * factor;
-        if (x > y) return 1 * factor;
-        return (Number(a.dataset.day) - Number(b.dataset.day)) * factor;
-      });
-      tbody.append(...rows);
-      render();
-    };
-
-    for (const button of buttons) {
-      button.addEventListener('click', () => sortBy(button.dataset.sort ?? 'day', button.dataset.type ?? 'text'));
+  search?.addEventListener('input', () => {
+    const query = search.value.trim().toLowerCase();
+    let shown = 0;
+    for (const card of cards) {
+      const match = !query || (card.dataset.search ?? '').includes(query);
+      card.hidden = !match;
+      if (match) shown += 1;
     }
-
-    search.addEventListener('input', () => {
-      const query = search.value.trim().toLowerCase();
-      let shown = 0;
-      for (const row of rows) {
-        const match = !query || (row.textContent ?? '').toLowerCase().includes(query);
-        row.hidden = !match;
-        if (match) shown += 1;
-      }
-      if (count) count.textContent = `Showing ${shown} of ${total} days`;
-      empty?.classList.toggle('hidden', shown > 0);
-    });
-
-    render();
-  }
+    for (const group of groups) {
+      const visible = group.querySelectorAll('[data-day-card]:not([hidden])').length;
+      group.hidden = visible === 0;
+      const groupCount = group.querySelector('[data-group-count]');
+      if (groupCount) groupCount.textContent = String(visible);
+    }
+    if (count) count.textContent = `Showing ${shown} of ${cards.length} days`;
+    empty?.classList.toggle('hidden', shown > 0);
+  });
 </script>

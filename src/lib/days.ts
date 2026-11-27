@@ -1,5 +1,6 @@
 import type { ImageMetadata } from 'astro';
 import { getCollection, type CollectionEntry } from 'astro:content';
+import { stateFor } from './states';
 
 export type Day = CollectionEntry<'days'>;
 
@@ -22,6 +23,32 @@ export function resolveDayImage(path: string): ImageMetadata {
 export async function getDays(): Promise<Day[]> {
   const days = await getCollection('days');
   return days.sort((a, b) => a.data.day - b.data.day);
+}
+
+export interface DayInfo {
+  entry: Day;
+  /** State the day's stop is in, derived from its coordinates. */
+  state: string;
+  /** Trail miles completed by the end of this day. */
+  milesSoFar: number;
+  /** Miles left to Katahdin after this day (never below 0). */
+  milesToGo: number;
+}
+
+/** Every day with its derived state and running mileage, in day order. */
+export async function getDayInfo(): Promise<DayInfo[]> {
+  const days = await getDays();
+  let running = 0;
+  return days.map((entry) => {
+    running += entry.data.mileage;
+    const milesSoFar = Math.round(running * 10) / 10;
+    return {
+      entry,
+      state: stateFor(entry.data.lat, entry.data.long),
+      milesSoFar,
+      milesToGo: Math.max(0, Math.round((TRAIL_TOTAL_MILES - milesSoFar) * 10) / 10),
+    };
+  });
 }
 
 export function totalMiles(days: Day[]): number {

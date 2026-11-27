@@ -7,7 +7,7 @@ import { baseWeight, gearIntro, gearSections } from '../data/gear';
 
 <BaseLayout page={pages.gear}>
   <PageHeader title="Gear" eyebrow="What I carried">
-    <div class="mt-10 grid gap-10 lg:grid-cols-12 lg:gap-x-16">
+    <div class="mt-6 grid gap-6 md:mt-8 lg:grid-cols-12 lg:gap-x-12">
       <p class="prose prose-trail lg:col-span-7">{gearIntro}</p>
 
       <div class="self-start border-l border-rust-400 pl-5 lg:col-span-4 lg:col-start-9">
@@ -20,13 +20,13 @@ import { baseWeight, gearIntro, gearSections } from '../data/gear';
     </div>
   </PageHeader>
 
-  <section class="py-section" aria-label="Gear list">
-    <div class="page-container columns-1 gap-x-16 md:columns-2 xl:columns-3">
+  <section class="py-8 md:py-12" aria-label="Gear list">
+    <div class="container mx-auto max-w-6xl px-4 sm:px-6 columns-1 gap-x-12 md:columns-2 xl:columns-3">
       {
         gearSections.map((section, index) => {
           const id = `gear-${section.title.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`;
           return (
-            <section class="mb-14 break-inside-avoid" aria-labelledby={id}>
+            <section class="mb-10 break-inside-avoid" data-reveal aria-labelledby={id}>
               <div class="mb-4 flex items-baseline gap-4 border-b border-cream/25 pb-3">
                 <span class="text-xs font-medium text-rust-300 tabular-nums" aria-hidden="true">
                   {String(index + 1).padStart(2, '0')}

@@ -9,19 +9,16 @@ const traveled = totalMiles(await getDays());
 ---
 
 <BaseLayout page={pages.map}>
-  <section class="border-b border-cream/15 pt-block pb-10 lg:pt-20">
-    <div class="page-container grid gap-10 lg:grid-cols-12 lg:items-end lg:gap-x-16">
-      <div class="lg:col-span-6">
-        <p class="eyebrow mb-4">The route, day by day</p>
-        <h1 class="font-display text-3xl font-normal text-cream sm:text-[clamp(2.75rem,1.8rem+3vw,4.25rem)] sm:leading-none">
-          Where is Jimmy?
-        </h1>
-      </div>
-      <div class="lg:col-span-5 lg:col-start-8">
-        <MilesProgress traveled={traveled} total={TRAIL_TOTAL_MILES} />
-      </div>
+  <!-- Compact strip so the map itself is the hero. Its height is fixed (map-strip) so the
+       embed below can fill the rest of the viewport. -->
+  <div class="flex h-24 items-center border-b border-cream/15 md:h-16">
+    <div class="container mx-auto max-w-6xl flex flex-col gap-2 px-4 sm:px-6 md:flex-row md:items-center md:justify-between md:gap-8">
+      <h1 class="font-display text-[1.75rem] leading-none font-normal text-cream md:text-[2rem]">Where is Jimmy?</h1>
+      <MilesProgress traveled={traveled} total={TRAIL_TOTAL_MILES} />
     </div>
-  </section>
+  </div>
 
-  <TrailMap />
+  <!-- Phones: ~70% of the screen so the footer peeks in. From md: viewport minus header
+       (5rem / 6rem at lg), strip (4rem) and credit (~2rem). -->
+  <TrailMap class="h-[70dvh] min-h-[26rem] md:h-[calc(100dvh-11rem)] lg:h-[calc(100dvh-12rem)] lg:min-h-[32rem]" />
 </BaseLayout>

@@ -9,11 +9,11 @@ interface Props {
 const { title, eyebrow, class: className } = Astro.props;
 ---
 
-<section class:list={['border-b border-cream/15 pt-block pb-10 lg:pt-20 lg:pb-14', className]}>
-  <div class="page-container">
+<section class:list={['border-b border-cream/15 pt-8 pb-8 md:pt-12 md:pb-10', className]}>
+  <div class="container mx-auto max-w-6xl px-4 sm:px-6">
     <slot name="before" />
-    {eyebrow && <p class="eyebrow mb-4">{eyebrow}</p>}
-    <h1 class="font-display text-3xl font-normal text-cream sm:text-[clamp(2.75rem,1.8rem+3vw,4.25rem)] sm:leading-none">
+    {eyebrow && <p class="eyebrow mb-3">{eyebrow}</p>}
+    <h1 class="page-title">
       {title}
     </h1>
     <slot />

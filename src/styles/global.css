@@ -75,14 +75,11 @@
   --tracking-label: 0.18em;
   --tracking-text: 0.02em;
 
-  /* Spacing scale for layout rhythm (base unit stays Tailwind's 0.25rem) */
-  --spacing-gutter: clamp(1rem, 0.5rem + 2.5vw, 2.5rem);
-  --spacing-block: clamp(2rem, 1.25rem + 3vw, 3.5rem);
-  --spacing-section: clamp(4rem, 2.5rem + 6vw, 8rem);
+  /* Header heights (spacing uses Tailwind's default 0.25rem scale; layout uses the
+     default `container` with mx-auto px-4 sm:px-6) */
   --spacing-header: 5rem;
-  --spacing-header-lg: 7rem;
+  --spacing-header-lg: 6rem;
 
-  --container-page: 76rem;
   --container-measure: 40rem;
 
   --radius-photo: 2px;
@@ -129,11 +126,22 @@
 
 /* ---------- Components ---------- */
 @layer components {
-  .page-container {
-    margin-inline: auto;
-    width: 100%;
-    max-width: var(--container-page);
-    padding-inline: var(--spacing-gutter);
+  /* Page titles (h1) share one size; section headings use text-3xl and sit just below it. */
+  .page-title {
+    font-family: var(--font-display);
+    font-weight: 400;
+    font-size: clamp(2.25rem, 1.7rem + 2.2vw, 3.5rem);
+    line-height: 1;
+    color: var(--color-cream);
+  }
+
+  /* Section headings (h2) inside a page. */
+  .section-title {
+    font-family: var(--font-display);
+    font-weight: 400;
+    font-size: clamp(1.875rem, 1.5rem + 1.6vw, 2.75rem);
+    line-height: 1.05;
+    color: var(--color-cream);
   }
 
   /* Small uppercase label used for section markers and stat captions */
@@ -202,5 +210,21 @@
     &:hover {
       text-decoration-color: var(--color-cream);
     }
+  }
+}
+
+/* ---------- Scroll fade-ins: only with JS and when the visitor allows motion ---------- */
+@media (prefers-reduced-motion: no-preference) {
+  html.js [data-reveal] {
+    opacity: 0;
+    transform: translateY(12px);
+    transition:
+      opacity 600ms cubic-bezier(0.22, 1, 0.36, 1),
+      transform 600ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  html.js [data-reveal].is-visible {
+    opacity: 1;
+    transform: none;
   }
 }

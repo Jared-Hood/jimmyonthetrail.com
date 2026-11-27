@@ -75,19 +75,30 @@ const aboutPhotos = [
     />
     <div class="absolute inset-0 -z-10 bg-gradient-to-t from-ink/90 via-ink/50 to-ink/5" aria-hidden="true"></div>
 
-    <div class="page-container flex min-h-[26rem] flex-col justify-end pt-24 pb-12 sm:min-h-[34rem] lg:min-h-[min(44rem,78vh)] lg:pb-16">
-      <p class="eyebrow mb-5 !text-cream-200">Appalachian Trail &middot; 2022</p>
+    <div class="container mx-auto max-w-6xl px-4 sm:px-6 flex min-h-[26rem] flex-col justify-end pt-16 pb-10 sm:min-h-[32rem] lg:min-h-[min(40rem,75vh)] lg:pb-14">
+      <p class="eyebrow mb-4 !text-cream-200">Appalachian Trail &middot; 2022</p>
       <h1 id="hero-title" class="flex flex-col font-display text-display font-normal text-cream">
         <span>Jimmy on the Trail</span>
         <span class="mt-4 text-2xl text-cream-200 sm:mt-6 sm:text-3xl">RocketMan 🚀</span>
       </h1>
+      <p class="mt-6 max-w-xl text-base leading-relaxed text-cream-200 sm:text-lg">
+        2,194.3 miles from Springer Mountain, Georgia to Mt Katahdin, Maine in 157 days.
+      </p>
+      <p class="mt-6">
+        <a
+          href="/blog/0"
+          class="inline-flex items-center gap-3 rounded-photo border border-rust-400 bg-rust px-5 py-3 text-sm font-medium tracking-[0.12em] text-cream-50 uppercase transition-colors hover:bg-rust-700"
+        >
+          Start at Day 0 <span aria-hidden="true">&rarr;</span>
+        </a>
+      </p>
     </div>
   </section>
 
   <!-- That's a Wrap -->
-  <section class="py-section" aria-labelledby="wrap-title">
-    <div class="page-container grid gap-y-12 lg:grid-cols-12 lg:gap-x-16">
-      <figure class="lg:col-span-5 lg:pt-3">
+  <section class="py-10 md:py-16" aria-labelledby="wrap-title">
+    <div class="container mx-auto max-w-6xl px-4 sm:px-6 grid gap-y-8 md:grid-cols-12 md:gap-x-8 lg:gap-x-12">
+      <figure class="md:col-span-5 md:pt-1" data-reveal>
         <Image
           src={summit}
           alt="Jimmy with arms raised, standing on the Katahdin summit sign in the fog"
@@ -95,18 +106,18 @@ const aboutPhotos = [
           widths={[480, 720, 960, 1280]}
           width={1280}
           quality={72}
-          sizes="(min-width: 76rem) 440px, (min-width: 64rem) 38vw, (min-width: 40rem) 32rem, calc(100vw - 2rem)"
-          class="mx-auto aspect-[3/4] w-full max-w-lg rounded-photo object-cover lg:max-w-none"
+          sizes="(min-width: 72rem) 440px, (min-width: 48rem) 40vw, calc(100vw - 2rem)"
+          class="aspect-[3/4] w-full rounded-photo object-cover"
         />
-        <figcaption class="mx-auto mt-3 flex max-w-lg items-baseline gap-3 text-xs tracking-[0.08em] text-cream-400 lg:max-w-none">
+        <figcaption class="mt-3 flex items-baseline gap-3 text-xs tracking-[0.08em] text-cream-400">
           <span class="h-px w-8 shrink-0 translate-y-[-0.25em] bg-rust" aria-hidden="true"></span>
           Mount Katahdin, Maine
         </figcaption>
       </figure>
 
-      <div class="lg:col-span-7">
-        <p class="eyebrow mb-4">The finish</p>
-        <h2 id="wrap-title" class="mb-8 font-display text-3xl font-normal text-cream">That's a Wrap!</h2>
+      <div class="md:col-span-7" data-reveal>
+        <p class="eyebrow mb-3">The finish</p>
+        <h2 id="wrap-title" class="section-title mb-6">That's a Wrap!</h2>
         <div class="prose prose-trail">
           <p>
             To all my friends and family that followed my AT adventure and provided words of encouragement THANK YOU!
@@ -134,12 +145,12 @@ const aboutPhotos = [
 
   <!-- Final stats -->
   <section class="border-y border-cream/20 bg-bark" aria-labelledby="stats-title">
-    <div class="page-container py-block">
+    <div class="container mx-auto max-w-6xl px-4 sm:px-6 py-8 md:py-12">
       <h2 id="stats-title" class="eyebrow !text-cream-200">Some Final Stats</h2>
-      <p class="mt-2 mb-8 text-sm text-cream-200">
+      <p class="mt-2 mb-6 text-sm text-cream-200">
         Springer Mountain, Georgia to Mt Katahdin, Maine &middot; March 14 to August 17, 2022
       </p>
-      <dl class="flex flex-wrap gap-x-8 gap-y-8 lg:gap-x-12">
+      <dl class="flex flex-wrap gap-x-8 gap-y-8 lg:gap-x-12" data-reveal>
         {
           stats.map((stat) => (
             <div class="flex min-w-fit flex-1 basis-[8.5rem] flex-col-reverse justify-end gap-2 border-l border-rust-400 pl-4">
@@ -158,13 +169,13 @@ const aboutPhotos = [
   </section>
 
   <!-- About me -->
-  <section class="py-section" aria-labelledby="about-title">
-    <div class="page-container">
-      <div class="grid gap-y-8 lg:grid-cols-12 lg:gap-x-16">
+  <section class="py-10 md:py-16" aria-labelledby="about-title">
+    <div class="container mx-auto max-w-6xl px-4 sm:px-6">
+      <div class="grid gap-y-6 lg:grid-cols-12 lg:gap-x-12">
         <div class="lg:col-span-4">
           <div class="lg:sticky lg:top-10">
-            <p class="eyebrow mb-4">Before the trail</p>
-            <h2 id="about-title" class="font-display text-3xl font-normal text-cream">About Me</h2>
+            <p class="eyebrow mb-3">Before the trail</p>
+            <h2 id="about-title" class="section-title">About Me</h2>
           </div>
         </div>
 
@@ -193,10 +204,10 @@ const aboutPhotos = [
         </div>
       </div>
 
-      <ul class="mt-block grid gap-3 sm:grid-cols-2 sm:gap-4" aria-label="Photos of Jimmy">
+      <ul class="mt-8 md:mt-12 grid gap-3 sm:grid-cols-2 sm:gap-4" aria-label="Photos of Jimmy">
         {
           aboutPhotos.map((photo) => (
-            <li class:list={[photo.portrait && 'sm:row-span-2']}>
+            <li class:list={[photo.portrait && 'sm:row-span-2']} data-reveal>
               <Image
                 src={photo.src}
                 alt={photo.alt}
@@ -204,7 +215,7 @@ const aboutPhotos = [
                 widths={[400, 600, 800, 1200]}
                 width={1200}
                 quality={72}
-                sizes="(min-width: 76rem) 560px, (min-width: 40rem) calc(50vw - 3rem), calc(100vw - 2rem)"
+                sizes="(min-width: 72rem) 544px, (min-width: 40rem) calc(50vw - 2rem), calc(100vw - 2rem)"
                 class:list={[
                   'h-full w-full rounded-photo bg-bark object-cover',
                   photo.portrait ? 'aspect-[3/4] sm:aspect-auto' : 'aspect-[4/3]',
