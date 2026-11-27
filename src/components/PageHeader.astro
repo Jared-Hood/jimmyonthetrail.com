@@ -1,0 +1,21 @@
+---
+interface Props {
+  title: string;
+  eyebrow?: string;
+  /** Extra classes for the outer section (e.g. tighter bottom padding). */
+  class?: string;
+}
+
+const { title, eyebrow, class: className } = Astro.props;
+---
+
+<section class:list={['border-b border-cream/15 pt-8 pb-8 md:pt-12 md:pb-10', className]}>
+  <div class="container mx-auto px-4 sm:px-6">
+    <slot name="before" />
+    {eyebrow && <p class="eyebrow mb-3">{eyebrow}</p>}
+    <h1 class="page-title">
+      {title}
+    </h1>
+    <slot />
+  </div>
+</section>

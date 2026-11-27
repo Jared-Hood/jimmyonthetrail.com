@@ -1,0 +1,158 @@
+---
+/**
+ * Full-screen photo viewer shared by the gallery and day pages. It opens for any link with
+ * data-lightbox-index (href = full image, data-srcset = sizes, alt from the link's <img>).
+ * Swipe on touch, arrow keys, Escape, caption from the alt text, "Photo N of M" counter;
+ * focus stays inside while open and returns to the thumbnail afterwards.
+ */
+---
+
+<dialog
+  id="lightbox"
+  aria-labelledby="lightbox-title"
+  class="m-0 h-dvh max-h-none w-screen max-w-none bg-ink-900 p-0 text-cream backdrop:bg-ink-900/80"
+>
+  <div class="flex h-full flex-col">
+    <div class="flex items-center justify-between gap-4 px-4 py-3 sm:px-6">
+      <h2 id="lightbox-title" class="sr-only">Photo viewer</h2>
+      <p id="lightbox-count" class="text-sm text-cream-200 tabular-nums" aria-live="polite"></p>
+      <button
+        type="button"
+        data-close
+        class="inline-flex h-11 items-center gap-2 px-2 text-sm font-medium tracking-[0.06em] text-cream hover:text-rust-300"
+      >
+        Close <span aria-hidden="true" class="text-xl leading-none">×</span>
+      </button>
+    </div>
+    <figure data-stage class="relative m-0 flex min-h-0 flex-1 touch-pan-y flex-col items-center justify-center gap-3 pb-4 select-none sm:px-20 sm:pb-6">
+      <img
+        id="lightbox-image"
+        alt=""
+        sizes="(max-width: 48rem) 100vw, 75vh"
+        decoding="async"
+        draggable="false"
+        class="min-h-0 max-w-full flex-1 object-contain transition-opacity duration-200"
+      />
+      <figcaption id="lightbox-caption" class="max-w-xl px-4 text-center text-sm text-cream-200"></figcaption>
+      <button
+        type="button"
+        data-prev
+        aria-label="Previous photo"
+        class="absolute top-1/2 left-2 h-12 w-12 -translate-y-1/2 rounded-full bg-ink-900/70 text-3xl leading-none text-cream hover:text-rust-300 sm:left-4"
+      >
+        ‹
+      </button>
+      <button
+        type="button"
+        data-next
+        aria-label="Next photo"
+        class="absolute top-1/2 right-2 h-12 w-12 -translate-y-1/2 rounded-full bg-ink-900/70 text-3xl leading-none text-cream hover:text-rust-300 sm:right-4"
+      >
+        ›
+      </button>
+    </figure>
+  </div>
+</dialog>
+
+<script>
+  const dialog = document.getElementById('lightbox') as HTMLDialogElement | null;
+  const image = document.getElementById('lightbox-image') as HTMLImageElement | null;
+  const counter = document.getElementById('lightbox-count');
+  const caption = document.getElementById('lightbox-caption');
+  const links = Array.from(document.querySelectorAll<HTMLAnchorElement>('[data-lightbox-index]'));
+
+  // Without <dialog> support the links simply open the full-size image.
+  if (dialog && image && typeof dialog.showModal === 'function') {
+    let current = 0;
+    let opener: HTMLElement | null = null;
+    const preloaded = new Set<number>();
+
+    const wrap = (index: number) => (index + links.length) % links.length;
+
+    /** Warms the cache for a neighbour, letting the browser pick the same srcset size. */
+    const preload = (index: number) => {
+      const i = wrap(index);
+      if (preloaded.has(i)) return;
+      preloaded.add(i);
+      const img = new Image();
+      img.sizes = image.sizes;
+      img.srcset = links[i].dataset.srcset ?? '';
+      img.src = links[i].href;
+    };
+
+    const show = (index: number) => {
+      current = wrap(index);
+      const link = links[current];
+      const alt = link.querySelector('img')?.alt ?? '';
+      image.srcset = link.dataset.srcset ?? '';
+      image.src = link.href;
+      image.alt = alt;
+      if (caption) caption.textContent = alt;
+      if (counter) counter.textContent = `Photo ${current + 1} of ${links.length}`;
+      preload(current + 1);
+      preload(current - 1);
+    };
+
+    links.forEach((link, index) => {
+      link.addEventListener('click', (event) => {
+        event.preventDefault();
+        opener = link;
+        show(index);
+        // showModal() makes the rest of the page inert, so focus stays inside the viewer.
+        dialog.showModal();
+      });
+    });
+
+    dialog.querySelector('[data-prev]')?.addEventListener('click', () => show(current - 1));
+    dialog.querySelector('[data-next]')?.addEventListener('click', () => show(current + 1));
+    dialog.querySelector('[data-close]')?.addEventListener('click', () => dialog.close());
+
+    dialog.addEventListener('keydown', (event) => {
+      if (event.key === 'ArrowLeft') show(current - 1);
+      if (event.key === 'ArrowRight') show(current + 1);
+    });
+
+    // Swipe left/right on touch screens (pointer events; vertical moves are ignored).
+    const stage = dialog.querySelector<HTMLElement>('[data-stage]');
+    let startX = 0;
+    let startY = 0;
+    let tracking = false;
+    let swiped = false;
+    stage?.addEventListener('pointerdown', (event) => {
+      if (event.pointerType === 'mouse') return;
+      tracking = true;
+      swiped = false;
+      startX = event.clientX;
+      startY = event.clientY;
+    });
+    stage?.addEventListener('pointerup', (event) => {
+      if (!tracking) return;
+      tracking = false;
+      const dx = event.clientX - startX;
+      const dy = event.clientY - startY;
+      if (Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(dy) * 1.5) {
+        swiped = true;
+        show(current + (dx < 0 ? 1 : -1));
+      }
+    });
+    stage?.addEventListener('pointercancel', () => (tracking = false));
+
+    // Clicking empty space around the photo closes the viewer.
+    dialog.addEventListener('click', (event) => {
+      if (swiped) {
+        swiped = false;
+        return;
+      }
+      const target = event.target as HTMLElement;
+      if (target === dialog || target.hasAttribute('data-stage')) dialog.close();
+    });
+
+    dialog.addEventListener('close', () => {
+      image.removeAttribute('srcset');
+      image.removeAttribute('src');
+      // Return focus to the thumbnail of the photo that was last shown (or the one that opened it).
+      (links[current] ?? opener)?.focus();
+      opener = null;
+    });
+  }
+</script>

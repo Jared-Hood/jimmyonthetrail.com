@@ -1,0 +1,149 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import PageHeader from '../../components/PageHeader.astro';
+import JsonLd from '../../components/JsonLd.astro';
+import DayCard from '../../components/DayCard.astro';
+import { pages, site } from '../../data/site';
+import { ids, personRef } from '../../lib/schema';
+import { dayHeadline } from '../../lib/daySeo';
+import { formatShortDate, getDayInfo, isoDate } from '../../lib/days';
+import { TRAIL_STATES } from '../../lib/states';
+
+// Day 0 (the approach trail) has its own page but stays out of the index, as on the old site.
+const days = (await getDayInfo()).filter((info) => info.entry.data.day > 0);
+
+// Group by state in trail order (Georgia to Maine). Where the trail follows a state line
+// (e.g. North Carolina / Tennessee) a state's days are not all consecutive.
+const groups = TRAIL_STATES.map((state) => ({
+  state,
+  id: `state-${state.toLowerCase().replace(/\s+/g, '-')}`,
+  days: days.filter((info) => info.state === state),
+})).filter((group) => group.days.length > 0);
+
+const blogUrl = `${site.url}/blog`;
+const blogLd = {
+  '@context': 'https://schema.org',
+  '@type': 'Blog',
+  '@id': ids.blog,
+  name: `${site.name} Blog`,
+  url: blogUrl,
+  description: pages.blog.description,
+  inLanguage: 'en',
+  author: personRef,
+  publisher: { '@id': ids.person },
+  isPartOf: { '@id': ids.website },
+  about: { '@id': ids.trail },
+  blogPost: days.map((info) => ({
+    '@type': 'BlogPosting',
+    '@id': `${blogUrl}/${info.entry.data.day}#post`,
+    headline: dayHeadline(info),
+    datePublished: isoDate(info.entry.data.date),
+    url: `${blogUrl}/${info.entry.data.day}`,
+  })),
+};
+
+const range = (list: typeof days) => {
+  const first = list[0].entry.data;
+  const last = list.at(-1)!.entry.data;
+  return `${formatShortDate(first.date)} to ${formatShortDate(last.date)}`;
+};
+---
+
+<BaseLayout page={pages.blog}>
+  <JsonLd slot="head" data={blogLd} />
+  <PageHeader title="Blog" eyebrow={`${days.length} days, Georgia to Maine`}>
+    <nav aria-label="Jump to a state" class="mt-6">
+      <ul class="flex flex-wrap gap-2">
+        {
+          groups.map((group) => (
+            <li>
+              <a
+                href={`#${group.id}`}
+                class="inline-flex items-center gap-1.5 rounded-photo border border-cream/20 px-2.5 py-1.5 text-xs font-medium tracking-[0.06em] text-cream-200 hover:border-cream/50 hover:text-cream"
+              >
+                {group.state} <span class="text-cream-400 tabular-nums">{group.days.length}</span>
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </nav>
+  </PageHeader>
+
+  <section class="pt-6 pb-10 md:pt-8 md:pb-16" aria-label="Trail journal entries">
+    <div class="container mx-auto px-4 sm:px-6">
+      <div class="mb-8 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+        <div class="w-full sm:max-w-sm">
+          <label for="day-search" class="mb-2 block text-xs font-medium tracking-[0.14em] text-cream-400 uppercase">
+            Search
+          </label>
+          <input
+            id="day-search"
+            type="search"
+            autocomplete="off"
+            placeholder="Search for days or locations"
+            class="w-full border-0 border-b border-cream/40 bg-transparent px-0 py-2 text-base text-cream placeholder:text-cream-600 focus:border-cream"
+          />
+        </div>
+        <p id="day-count" class="text-sm text-cream-400" aria-live="polite">
+          Showing {days.length} of {days.length} days
+        </p>
+      </div>
+
+      <div class="space-y-10 md:space-y-12">
+        {
+          groups.map((group) => (
+            <section id={group.id} data-group data-reveal class="scroll-mt-6" aria-labelledby={`${group.id}-title`}>
+              <div class="mb-4 flex flex-wrap items-baseline gap-x-4 gap-y-1 border-b border-cream/25 pb-2">
+                <h2 id={`${group.id}-title`} class="font-display text-2xl leading-none text-cream md:text-[1.75rem]">
+                  {group.state}
+                </h2>
+                <p class="text-xs text-cream-400 tabular-nums">
+                  <span data-group-count>{group.days.length}</span> {group.days.length === 1 ? 'day' : 'days'} &middot;{' '}
+                  {range(group.days)}
+                </p>
+              </div>
+              <ul class="grid grid-cols-1 gap-2 sm:grid-cols-2 sm:gap-3 lg:grid-cols-3 xl:grid-cols-4">
+                {group.days.map((info) => (
+                  <li
+                    data-day-card
+                    data-search={`day ${info.entry.data.day} ${info.entry.data.name} ${formatShortDate(info.entry.data.date)} ${info.state}`.toLowerCase()}
+                  >
+                    <DayCard day={info.entry} class="h-full" />
+                  </li>
+                ))}
+              </ul>
+            </section>
+          ))
+        }
+      </div>
+      <p id="no-results" class="hidden py-10 text-center text-cream-400">No days match that search.</p>
+    </div>
+  </section>
+</BaseLayout>
+
+<script>
+  const search = document.getElementById('day-search') as HTMLInputElement | null;
+  const count = document.getElementById('day-count');
+  const empty = document.getElementById('no-results');
+  const cards = Array.from(document.querySelectorAll<HTMLElement>('[data-day-card]'));
+  const groups = Array.from(document.querySelectorAll<HTMLElement>('[data-group]'));
+
+  search?.addEventListener('input', () => {
+    const query = search.value.trim().toLowerCase();
+    let shown = 0;
+    for (const card of cards) {
+      const match = !query || (card.dataset.search ?? '').includes(query);
+      card.hidden = !match;
+      if (match) shown += 1;
+    }
+    for (const group of groups) {
+      const visible = group.querySelectorAll('[data-day-card]:not([hidden])').length;
+      group.hidden = visible === 0;
+      const groupCount = group.querySelector('[data-group-count]');
+      if (groupCount) groupCount.textContent = String(visible);
+    }
+    if (count) count.textContent = `Showing ${shown} of ${cards.length} days`;
+    empty?.classList.toggle('hidden', shown > 0);
+  });
+</script>

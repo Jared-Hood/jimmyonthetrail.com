@@ -1,0 +1,15 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  // Fully static site: Cloudflare Workers serves the Astro build output as static assets.
+  // No Worker script and no Astro adapter.
+  "name": "jimmyonthetrail-com",
+  "compatibility_date": "2026-11-27",
+  "assets": {
+    "directory": "./dist",
+    // Astro builds /blog/5 as dist/blog/5.html (build.format: 'file'). drop-trailing-slash serves
+    // /blog/5 from blog/5.html and redirects /blog/5/ to /blog/5, matching trailingSlash: 'never'.
+    "html_handling": "drop-trailing-slash",
+    // Unknown URLs get dist/404.html with a 404 status.
+    "not_found_handling": "404-page"
+  }
+}

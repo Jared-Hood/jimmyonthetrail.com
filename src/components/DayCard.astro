@@ -1,0 +1,59 @@
+---
+/**
+ * A compact card for one trail day: thumbnail when the day has a photo (never a placeholder),
+ * day number, location, date and miles. Used for previous/next links and the blog index.
+ */
+import { Image } from 'astro:assets';
+import { formatMiles, formatShortDate, isoDate, resolveDayImage, type Day } from '../lib/days';
+
+interface Props {
+  day: Day;
+  /** Small label above the day number, e.g. "Previous day". */
+  label?: string;
+  state?: string;
+  align?: 'start' | 'end';
+  class?: string;
+}
+
+const { day: entry, label, state, align = 'start', class: className } = Astro.props;
+const { day, name, date, mileage, images } = entry.data;
+const thumb = images[0] ? { src: resolveDayImage(images[0].src), alt: images[0].alt } : undefined;
+---
+
+<a
+  href={`/blog/${day}`}
+  class:list={[
+    'day-card group flex items-center gap-4 rounded-photo border border-cream/15 bg-ink-900/50 p-3 transition-colors hover:border-cream/40 hover:bg-bark/50',
+    align === 'end' && 'flex-row-reverse text-right',
+    className,
+  ]}
+>
+  {
+    thumb && (
+      <Image
+        src={thumb.src}
+        alt=""
+        format="webp"
+        width={96}
+        height={96}
+        densities={[1, 2]}
+        quality={65}
+        class="size-16 shrink-0 rounded-photo object-cover sm:size-20"
+      />
+    )
+  }
+  <span class="min-w-0 flex-1">
+    {label && <span class="block text-xs font-medium tracking-[0.14em] text-cream-400 uppercase">{label}</span>}
+    <span class="flex flex-wrap items-baseline gap-x-2 text-sm font-medium text-rust-300" class:list={[align === 'end' && 'justify-end']}>
+      <span>Day {day}</span>
+      {state && <span class="text-xs font-light text-cream-400">{state}</span>}
+    </span>
+    <span class="mt-0.5 block truncate text-base text-cream group-hover:underline group-hover:decoration-rust-400 group-hover:underline-offset-4">
+      {name}
+    </span>
+    <span class="mt-0.5 block text-xs text-cream-400 tabular-nums">
+      <time datetime={isoDate(date)}>{formatShortDate(date)}, {date.getUTCFullYear()}</time>{' '}
+      &middot; {formatMiles(mileage)} mi
+    </span>
+  </span>
+</a>

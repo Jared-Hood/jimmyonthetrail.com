@@ -1,16 +1,213 @@
 ---
+import { Image } from 'astro:assets';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import JsonLd from '../components/JsonLd.astro';
+import { pages } from '../data/site';
+import { person, website } from '../lib/schema';
+
+import skyline from '../assets/images/skyline.jpeg';
+import summit from '../assets/images/Summit.jpg';
+import photo1 from '../assets/images/home/1.jpg';
+import photo2 from '../assets/images/home/2.jpg';
+import photo3 from '../assets/images/home/3.jpg';
+import photo4 from '../assets/images/home/4.jpg';
+import photo5 from '../assets/images/home/5.jpg';
+import photo6 from '../assets/images/home/6.jpg';
+
+const stats = [
+  { value: '2194.3', label: 'Miles traveled' },
+  { value: '5,904,703', label: 'Steps taken' },
+  { value: '4', label: 'Pairs of shoes' },
+  { value: '157', label: 'Days on trail' },
+  { value: '11', label: 'Zero days', note: 'no miles traveled' },
+];
+
+// Order matters: it drives the two-column zigzag grid (portraits span two rows).
+const aboutPhotos = [
+  { src: photo1, alt: 'Jimmy leaning on an Appalachian Trail plaque set in stone', portrait: true },
+  { src: photo2, alt: 'Jimmy walking three dogs across a wide sandy beach', portrait: false },
+  { src: photo4, alt: 'Jimmy taking a selfie with three young hikers on a wooded trail', portrait: false },
+  { src: photo5, alt: 'Jimmy and a young man smiling in a selfie on a grassy path', portrait: false },
+  { src: photo3, alt: 'Jimmy standing with a woman in a pink dress at sunset', portrait: true },
+  { src: photo6, alt: 'Jimmy and friends at a campsite picnic table beside an Airstream trailer, dogs resting nearby', portrait: false },
+];
+
 ---
 
-<html lang="en">
-	<head>
-		<meta charset="utf-8" />
-		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-		<link rel="icon" href="/favicon.ico" />
-		<meta name="viewport" content="width=device-width" />
-		<meta name="generator" content={Astro.generator} />
-		<title>Astro</title>
-	</head>
-	<body>
-		<h1>Astro</h1>
-	</body>
-</html>
+<BaseLayout page={pages.home}>
+  <JsonLd
+    slot="head"
+    data={{
+      '@context': 'https://schema.org',
+      '@graph': [{ ...website, description: pages.home.description }, person],
+    }}
+  />
+  <!-- Hero -->
+  <section class="relative isolate overflow-hidden" aria-labelledby="hero-title">
+    <Image
+      src={skyline}
+      alt=""
+      format="webp"
+      widths={[640, 1024, 1440, 1800]}
+      width={1800}
+      quality={70}
+      sizes="100vw"
+      loading="eager"
+      fetchpriority="high"
+      class="absolute inset-0 -z-10 h-full w-full object-cover object-[50%_60%]"
+    />
+    <div class="absolute inset-0 -z-10 bg-gradient-to-t from-ink/90 via-ink/50 to-ink/5" aria-hidden="true"></div>
+
+    <div class="container mx-auto px-4 sm:px-6 flex min-h-[26rem] flex-col justify-end pt-16 pb-10 sm:min-h-[32rem] lg:min-h-[min(40rem,75vh)] lg:pb-14">
+      <p class="eyebrow mb-4 !text-cream-200">Appalachian Trail &middot; 2022</p>
+      <h1 id="hero-title" class="flex flex-col font-display text-display font-normal text-cream">
+        <span>Jimmy on the Trail</span>
+        <span class="mt-4 text-2xl text-cream-200 sm:mt-6 sm:text-3xl">RocketMan 🚀</span>
+      </h1>
+      <p class="mt-6 max-w-xl text-base leading-relaxed text-cream-200 sm:text-lg">
+        2,194.3 miles from Springer Mountain, Georgia to Mt Katahdin, Maine in 157 days.
+      </p>
+      <p class="mt-6">
+        <a
+          href="/blog/0"
+          class="inline-flex items-center gap-3 rounded-photo border border-rust-400 bg-rust px-5 py-3 text-sm font-medium tracking-[0.12em] text-cream-50 uppercase transition-colors hover:bg-rust-700"
+        >
+          Start at Day 0 <span aria-hidden="true">&rarr;</span>
+        </a>
+      </p>
+    </div>
+  </section>
+
+  <!-- That's a Wrap -->
+  <section class="py-10 md:py-16" aria-labelledby="wrap-title">
+    <div class="container mx-auto px-4 sm:px-6 grid gap-y-8 md:grid-cols-12 md:gap-x-8 lg:gap-x-12">
+      <figure class="md:col-span-5 md:pt-1" data-reveal>
+        <Image
+          src={summit}
+          alt="Jimmy with arms raised, standing on the Katahdin summit sign in the fog"
+          format="webp"
+          widths={[480, 720, 960, 1280]}
+          width={1280}
+          quality={72}
+          sizes="(min-width: 96rem) 600px, (min-width: 80rem) 500px, (min-width: 48rem) 40vw, calc(100vw - 2rem)"
+          class="aspect-[3/4] w-full rounded-photo object-cover"
+        />
+        <figcaption class="mt-3 flex items-baseline gap-3 text-xs tracking-[0.08em] text-cream-400">
+          <span class="h-px w-8 shrink-0 translate-y-[-0.25em] bg-rust" aria-hidden="true"></span>
+          Mount Katahdin, Maine
+        </figcaption>
+      </figure>
+
+      <div class="md:col-span-7" data-reveal>
+        <p class="eyebrow mb-3">The finish</p>
+        <h2 id="wrap-title" class="section-title mb-6">That's a Wrap!</h2>
+        <div class="prose prose-trail">
+          <p>
+            To all my friends and family that followed my AT adventure and provided words of encouragement THANK YOU!
+            I would not of finished without your support.
+          </p>
+          <p>
+            I can say that the AT gave me the opportunity to experience a part of America that most Americans will
+            never see. The people I met were from many different professions - recent high school graduates, firemen,
+            nurses, truck drivers, layers, doctors, rocket scientist, etc… they spanned the ages of 18 to 80 and all
+            had their own reason to be on trail. These people were some of the best of America and other countries and
+            they could be counted on to help each other and provide encouragement when times were hard.
+          </p>
+          <p>
+            The numerous small towns that I would likely never visit added to the adventure with great food, drink and
+            interesting people.
+          </p>
+          <p>
+            Finally if you were ever considering on venturing out on a journey yourself I would encourage you to GO it
+            can be the best adventure you ever have. Be safe and be kind to each other!
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Final stats -->
+  <section class="border-y border-cream/20 bg-bark" aria-labelledby="stats-title">
+    <div class="container mx-auto px-4 sm:px-6 py-8 md:py-12">
+      <h2 id="stats-title" class="eyebrow !text-cream-200">Some Final Stats</h2>
+      <p class="mt-2 mb-6 text-sm text-cream-200">
+        Springer Mountain, Georgia to Mt Katahdin, Maine &middot; March 14 to August 17, 2022
+      </p>
+      <dl class="flex flex-wrap gap-x-8 gap-y-8 lg:gap-x-12" data-reveal>
+        {
+          stats.map((stat) => (
+            <div class="flex min-w-fit flex-1 basis-[8.5rem] flex-col-reverse justify-end gap-2 border-l border-rust-400 pl-4">
+              <dt class="text-xs font-medium uppercase tracking-[0.14em] text-cream-400">
+                {stat.label}
+                {stat.note && <span class="block font-light normal-case tracking-[0.04em]">({stat.note})</span>}
+              </dt>
+              <dd class="text-[clamp(1.625rem,1.1rem+1.6vw,2.5rem)] leading-none font-medium tabular-nums tracking-tight whitespace-nowrap text-cream">
+                {stat.value}
+              </dd>
+            </div>
+          ))
+        }
+      </dl>
+    </div>
+  </section>
+
+  <!-- About me -->
+  <section class="py-10 md:py-16" aria-labelledby="about-title">
+    <div class="container mx-auto px-4 sm:px-6">
+      <div class="grid gap-y-6 lg:grid-cols-12 lg:gap-x-12">
+        <div class="lg:col-span-4">
+          <div class="lg:sticky lg:top-10">
+            <p class="eyebrow mb-3">Before the trail</p>
+            <h2 id="about-title" class="section-title">About Me</h2>
+          </div>
+        </div>
+
+        <div class="prose prose-trail lg:col-span-8">
+          <p>
+            Hi, I'm Jimmy and I am an Appalachian Trail through-hiker! I've dreamed of hiking the trail for quite
+            sometime, making the decision in 2016 after a serious medical scare that made me realize I needed to quit
+            dreaming of hiking and make it a reality. 2022 became the year that would fit with my wife’s and my current
+            and future plans to take a step back from the 9-5 grind of working in rooms without windows and stepping
+            out into the great outdoors to see a part of America that most never venture to experience.
+          </p>
+          <p>
+            The hike starts March 14 and will continue for about 4 to 5 months. You can follow me along the trail with
+            posted tracking updates, photos and blog posts, and maybe even some GoPro footage of critters, scenery and
+            me!
+          </p>
+          <p>
+            As background on The Appalachian Trail, it's a 2193 mile trail marked by white blazes starting on Springer
+            Mountain in Georgia passing through 14 states and ending atop Mt Katahdin in Maine. You can find additional
+            information <a href="https://appalachiantrail.org/explore/">here</a>.
+          </p>
+          <p>
+            Time to head North to follow my dream, engage in adventure, and experience a euphoric sense of freedom and
+            contentment!
+          </p>
+        </div>
+      </div>
+
+      <ul class="mt-8 md:mt-12 grid gap-3 sm:grid-cols-2 sm:gap-4" aria-label="Photos of Jimmy">
+        {
+          aboutPhotos.map((photo) => (
+            <li class:list={[photo.portrait && 'sm:row-span-2']} data-reveal>
+              <Image
+                src={photo.src}
+                alt={photo.alt}
+                format="webp"
+                widths={[400, 600, 800, 1200]}
+                width={1200}
+                quality={72}
+                sizes="(min-width: 96rem) 740px, (min-width: 80rem) 610px, (min-width: 40rem) calc(50vw - 2rem), calc(100vw - 2rem)"
+                class:list={[
+                  'h-full w-full rounded-photo bg-bark object-cover',
+                  photo.portrait ? 'aspect-[3/4] sm:aspect-auto' : 'aspect-[4/3]',
+                ]}
+              />
+            </li>
+          ))
+        }
+      </ul>
+    </div>
+  </section>
+</BaseLayout>

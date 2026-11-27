@@ -1,0 +1,27 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+
+const page = {
+  name: 'Page Not Found',
+  description: "This page wandered off the trail. Head back to Jimmy on the Trail's home page.",
+  slug: '404',
+};
+---
+
+<BaseLayout page={page} noindex crumbs={[]}>
+  <section class="py-10 md:py-16">
+    <div class="container mx-auto px-4 sm:px-6">
+      <p class="eyebrow mb-3">404</p>
+      <h1 class="page-title">
+        Off the trail
+      </h1>
+      <p class="mt-6 max-w-[36rem] text-lg leading-relaxed text-cream-200">
+        We couldn't find that page. It may have moved when the site was rebuilt.
+      </p>
+      <p class="mt-8 flex flex-wrap gap-x-8 gap-y-3 font-medium">
+        <a href="/" class="text-cream underline decoration-rust-400 underline-offset-4 hover:decoration-cream">Return to Home</a>
+        <a href="/blog" class="text-cream-200 hover:text-cream">Read the blog</a>
+      </p>
+    </div>
+  </section>
+</BaseLayout>

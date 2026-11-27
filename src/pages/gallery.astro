@@ -1,0 +1,191 @@
+---
+import type { ImageMetadata } from 'astro';
+import { Image, getImage } from 'astro:assets';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import PageHeader from '../components/PageHeader.astro';
+import JsonLd from '../components/JsonLd.astro';
+import PhotoViewer from '../components/PhotoViewer.astro';
+import { pages, site } from '../data/site';
+import { ids, personRef } from '../lib/schema';
+import { galleryAlt } from '../data/gallery-alt';
+import { buildGalleryRows, cellAspect } from '../lib/galleryRows';
+
+const modules = import.meta.glob<ImageMetadata>('/src/assets/gallery/*.png', { eager: true, import: 'default' });
+
+const photos = await Promise.all(
+  Object.entries(modules)
+    .map(([path, src]) => ({ number: Number(/gallery(\d+)\.png$/.exec(path)?.[1] ?? 0), src }))
+    .sort((a, b) => a.number - b.number)
+    .map(async ({ number, src }) => {
+      // Viewer image: only fetched when the photo is opened (sources are 768px wide at most).
+      const viewer = await getImage({
+        src,
+        widths: [480, Math.min(src.width, 1600)],
+        format: 'webp',
+        quality: 75,
+      });
+      const alt = galleryAlt[number];
+      if (!alt) throw new Error(`Missing alt text for gallery${number}.png in src/data/gallery-alt.ts`);
+      return { src, number, alt, aspect: src.width / src.height, viewerSrc: viewer.src, viewerSrcset: viewer.srcSet.attribute };
+    }),
+);
+
+type Photo = (typeof photos)[number];
+
+// Rows of varied patterns (see src/lib/galleryRows.ts); each photo gets its share of the row
+// width for the `sizes` hint, and a running index for the viewer.
+const rows = buildGalleryRows(photos);
+const indexOf = new Map(photos.map((photo, i) => [photo, i]));
+const sizesFor = (fraction: number) => {
+  const f = fraction.toFixed(3);
+  // Phones get a slightly understated slot (two columns ≈ 45vw each) so 3x screens load
+  // 400px thumbnails rather than 600px; the full-size photo is one tap away in the viewer.
+  return `(min-width: 96rem) ${Math.round(1440 * fraction)}px, (min-width: 40rem) calc((100vw - 3rem) * ${f}), 33vw`;
+};
+const rowCells = rows.map((row) => {
+  const total = row.cells.reduce((sum, cell) => sum + cellAspect(cell), 0);
+  return {
+    pattern: row.pattern,
+    cells: row.cells.map((cell) => ({
+      grow: cellAspect(cell),
+      photos: (cell.kind === 'photo' ? [cell.photo] : cell.photos) as Photo[],
+      stacked: cell.kind === 'stack',
+      fraction: cellAspect(cell) / total,
+    })),
+  };
+});
+
+const galleryLd = {
+  '@context': 'https://schema.org',
+  '@type': 'ImageGallery',
+  '@id': `${site.url}/gallery#gallery`,
+  name: `${site.name} Photo Gallery`,
+  url: `${site.url}/gallery`,
+  description: pages.gallery.description,
+  author: personRef,
+  isPartOf: { '@id': ids.website },
+  about: { '@id': ids.trail },
+  image: photos.map((photo) => ({
+    '@type': 'ImageObject',
+    contentUrl: new URL(photo.viewerSrc, site.url).href,
+    width: photo.src.width,
+    height: photo.src.height,
+    caption: photo.alt,
+    creator: { '@id': ids.person },
+  })),
+};
+---
+
+<BaseLayout page={pages.gallery} image={photos[0]?.src}>
+  <JsonLd slot="head" data={galleryLd} />
+  <PageHeader title="Gallery" eyebrow={`${photos.length} photos from the Appalachian Trail`} />
+
+  <section class="py-6 md:py-10" aria-label="Photos">
+    <div class="container mx-auto px-4 sm:px-6">
+      <div class="gallery">
+        {
+          rowCells.map((row) => (
+            <div class:list={['gallery-row', `gallery-row--${row.pattern}`]} data-reveal>
+              {row.cells.map((cell) => (
+                <div class:list={[cell.stacked ? 'gallery-stack' : 'contents']} style={`--grow: ${cell.grow.toFixed(4)}`}>
+                  {cell.photos.map((photo) => (
+                    <a
+                      href={photo.viewerSrc}
+                      class="gallery-cell group block overflow-hidden rounded-photo bg-bark"
+                      style={`--grow: ${photo.aspect.toFixed(4)}; --aspect: ${photo.aspect.toFixed(4)}`}
+                      data-lightbox-index={indexOf.get(photo)}
+                      data-srcset={photo.viewerSrcset}
+                    >
+                      <Image
+                        src={photo.src}
+                        alt={photo.alt}
+                        format="webp"
+                        widths={[200, 300, 400, 600]}
+                        width={600}
+                        quality={62}
+                        loading="lazy"
+                        decoding="async"
+                        sizes={sizesFor(cell.fraction)}
+                        class="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.02] motion-reduce:transition-none motion-reduce:group-hover:scale-100"
+                      />
+                    </a>
+                  ))}
+                </div>
+              ))}
+            </div>
+          ))
+        }
+      </div>
+    </div>
+  </section>
+
+  <PhotoViewer />
+</BaseLayout>
+
+<style>
+  /* Phones: a simple two-column masonry (rows and stacks dissolve into the columns). */
+  .gallery {
+    columns: 2;
+    column-gap: 0.5rem;
+  }
+
+  .gallery-row,
+  .gallery-stack {
+    display: contents;
+  }
+
+  .gallery-cell {
+    aspect-ratio: var(--aspect);
+    margin-bottom: 0.5rem;
+    break-inside: avoid;
+  }
+
+  /* From 640px: editorial rows. Widths follow each photo's aspect ratio, so nothing is cropped. */
+  @media (min-width: 40rem) {
+    .gallery {
+      columns: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+
+    .gallery-row {
+      display: flex;
+      gap: 0.75rem;
+    }
+
+    .gallery-row > .contents > .gallery-cell,
+    .gallery-stack {
+      flex: var(--grow) 1 0;
+      min-width: 0;
+    }
+
+    .gallery-stack {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+
+    .gallery-stack > .gallery-cell {
+      flex: 1 1 0;
+      aspect-ratio: auto;
+    }
+
+    .gallery-cell {
+      margin-bottom: 0;
+    }
+
+    .gallery-row--solo > .contents > .gallery-cell {
+      flex: 0 1 50%;
+    }
+  }
+
+  @media (min-width: 64rem) {
+    .gallery,
+    .gallery-row,
+    .gallery-stack {
+      gap: 1rem;
+    }
+  }
+</style>
+
