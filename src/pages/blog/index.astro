@@ -3,7 +3,9 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 import PageHeader from '../../components/PageHeader.astro';
 import JsonLd from '../../components/JsonLd.astro';
 import DayCard from '../../components/DayCard.astro';
-import { hiker, pages, site } from '../../data/site';
+import { pages, site } from '../../data/site';
+import { ids, personRef } from '../../lib/schema';
+import { dayHeadline } from '../../lib/daySeo';
 import { formatShortDate, getDayInfo, isoDate } from '../../lib/days';
 import { TRAIL_STATES } from '../../lib/states';
 
@@ -22,16 +24,21 @@ const blogUrl = `${site.url}/blog`;
 const blogLd = {
   '@context': 'https://schema.org',
   '@type': 'Blog',
+  '@id': ids.blog,
   name: `${site.name} Blog`,
   url: blogUrl,
   description: pages.blog.description,
   inLanguage: 'en',
-  author: { '@type': 'Person', name: hiker.name, alternateName: hiker.trailName, url: `${site.url}/` },
-  blogPost: days.map(({ entry: { data } }) => ({
+  author: personRef,
+  publisher: { '@id': ids.person },
+  isPartOf: { '@id': ids.website },
+  about: { '@id': ids.trail },
+  blogPost: days.map((info) => ({
     '@type': 'BlogPosting',
-    headline: `Day ${data.day}, ${data.name}`,
-    datePublished: isoDate(data.date),
-    url: `${blogUrl}/${data.day}`,
+    '@id': `${blogUrl}/${info.entry.data.day}#post`,
+    headline: dayHeadline(info),
+    datePublished: isoDate(info.entry.data.date),
+    url: `${blogUrl}/${info.entry.data.day}`,
   })),
 };
 

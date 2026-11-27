@@ -14,7 +14,7 @@ const { page, image = defaultOgImage, imageAlt = 'Blue ridges of the Appalachian
   Astro.props;
 
 const siteUrl = Astro.site ?? new URL(site.url);
-const title = `${page.name} | ${site.name}`;
+const title = page.title ?? `${page.name} | ${site.name}`;
 const canonical = new URL(page.slug ? `/${page.slug}` : '/', siteUrl).href;
 
 const og = await getImage({ src: image, width: 1200, format: 'jpg', quality: 80 });

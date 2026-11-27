@@ -5,15 +5,20 @@ import SEO from '../components/SEO.astro';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
 import type { PageMeta } from '../data/site';
+import JsonLd from '../components/JsonLd.astro';
+import { breadcrumbList, type Crumb } from '../lib/schema';
 
 interface Props {
   page: PageMeta;
   image?: ImageMetadata;
   imageAlt?: string;
   noindex?: boolean;
+  /** Breadcrumb trail after Home; defaults to this page. Pass [] to skip (home, 404). */
+  crumbs?: Crumb[];
 }
 
 const { page, image, imageAlt, noindex = false } = Astro.props;
+const crumbs = Astro.props.crumbs ?? (page.slug ? [{ name: page.name, path: `/${page.slug}` }] : []);
 ---
 
 <!doctype html>
@@ -38,6 +43,7 @@ const { page, image, imageAlt, noindex = false } = Astro.props;
     <link rel="sitemap" href="/sitemap-index.xml" />
     <meta name="theme-color" content="#413333" />
     {noindex && <meta name="robots" content="noindex" />}
+    {crumbs.length > 0 && <JsonLd data={breadcrumbList([{ name: 'Home', path: '/' }, ...crumbs])} />}
     <slot name="head" />
   </head>
   <body class="flex min-h-dvh flex-col">

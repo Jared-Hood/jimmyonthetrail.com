@@ -8,17 +8,51 @@ interface Props {
 }
 
 const { class: heightClass = 'h-[min(80vh,720px)] min-h-[480px]' } = Astro.props;
+const frameClass = ['block w-full border-0 bg-bark', heightClass].join(' ');
 ---
 
 <figure class="m-0">
+  <!-- src is set by the inline script right below (so the embed loads once, already pointed
+       at ?stop/?day when the page URL has them); the noscript copy covers no-JS visitors. -->
   <iframe
-    src={trailMap.embedUrl}
+    id="trail-map-frame"
+    data-src={trailMap.embedUrl}
     title={trailMap.title}
     loading="lazy"
     allowfullscreen
-    class:list={['block w-full border-0 bg-bark', heightClass]}
+    class={frameClass}
   ></iframe>
-  <figcaption class="container mx-auto px-4 py-2 text-right text-xs text-cream-600 sm:px-6">
-    Map by <a href={trailMap.creditUrl} class="text-cream-400 underline decoration-cream/30 underline-offset-2 hover:text-cream">Adventure Mapper</a>
+  <script is:inline>
+    (() => {
+      const frame = document.getElementById('trail-map-frame');
+      if (!frame) return;
+      // AdventureMapper's own position params: 8-character alphanumeric short IDs.
+      const shortId = /^[A-Za-z0-9]{8}$/;
+      const page = new URLSearchParams(window.location.search);
+      const url = new URL(frame.dataset.src);
+      const stop = page.get('stop');
+      const day = page.get('day');
+      if (stop && shortId.test(stop)) {
+        url.searchParams.set('stop', stop);
+        if (day && shortId.test(day)) url.searchParams.set('day', day);
+      }
+      frame.src = url.href;
+    })();
+  </script>
+  <noscript>
+    <style>
+      #trail-map-frame {
+        display: none;
+      }
+    </style>
+    <iframe src={trailMap.embedUrl} title={trailMap.title} loading="lazy" allowfullscreen class={frameClass}></iframe>
+  </noscript>
+  <figcaption class="container mx-auto flex flex-wrap items-center justify-between gap-x-6 gap-y-1 px-4 py-2 text-xs text-cream-600 sm:px-6">
+    <a href={trailMap.tripUrl} class="text-cream-400 underline decoration-cream/30 underline-offset-2 hover:text-cream">
+      Explore Rocket Man's Appalachian Trail on Adventure Mapper
+    </a>
+    <span>
+      Map by <a href={trailMap.creditUrl} class="text-cream-400 underline decoration-cream/30 underline-offset-2 hover:text-cream">Adventure Mapper</a>
+    </span>
   </figcaption>
 </figure>

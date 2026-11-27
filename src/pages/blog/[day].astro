@@ -3,10 +3,13 @@ import type { GetStaticPaths } from 'astro';
 import { Image, getImage } from 'astro:assets';
 import { render } from 'astro:content';
 import BaseLayout from '../../layouts/BaseLayout.astro';
-import PhotoGrid from '../../components/PhotoGrid.astro';
 import JsonLd from '../../components/JsonLd.astro';
 import DayCard from '../../components/DayCard.astro';
-import { hiker, site } from '../../data/site';
+import { getMapLink } from '../../lib/mapLink';
+import PhotoViewer from '../../components/PhotoViewer.astro';
+import { site, trailMap } from '../../data/site';
+import { ids, personRef } from '../../lib/schema';
+import { dayDescription, dayHeadline, dayTitle } from '../../lib/daySeo';
 import { formatDate, formatMiles, getDayInfo, isoDate, resolveDayImage, type DayInfo } from '../../lib/days';
 
 export const getStaticPaths = (async () => {
@@ -27,57 +30,86 @@ const { info, prev, next } = Astro.props;
 const { entry, state, milesSoFar, milesToGo } = info;
 const { day, name, date, lat, long, mileage, altitude, images } = entry.data;
 
-const description = `On day ${day} I traveled through ${name}!`;
-const page = { name: `Day ${day}, ${name}`, description, slug: `blog/${day}` };
+const description = dayDescription(info);
+const page = { name: `Day ${day}`, title: dayTitle(info), description, slug: `blog/${day}` };
 const hasText = Boolean(entry.body?.trim());
 const { Content } = await render(entry);
 
-const photos = images.map((image) => ({ src: resolveDayImage(image.src), alt: image.alt }));
+// Each photo also gets a viewer-sized set (only fetched when opened in the full-screen viewer).
+const photos = await Promise.all(
+  images.map(async (image) => {
+    const src = resolveDayImage(image.src);
+    const viewer = await getImage({
+      src,
+      widths: [800, 1600].filter((w) => w <= src.width),
+      format: 'webp',
+      quality: 75,
+    });
+    return { src, alt: image.alt, viewerSrc: viewer.src, viewerSrcset: viewer.srcSet.attribute };
+  }),
+);
 const [lead, ...morePhotos] = photos;
 
 const siteUrl = Astro.site ?? new URL(site.url);
 const url = new URL(`/blog/${day}`, siteUrl).href;
 const jsonLdImage = photos[0]
-  ? new URL((await getImage({ src: photos[0].src, width: 1200, format: 'jpg', quality: 80 })).src, siteUrl).href
+  ? await getImage({ src: photos[0].src, width: Math.min(1200, photos[0].src.width), format: 'jpg', quality: 80 })
   : undefined;
+const wordCount = (entry.body ?? '').trim().split(/\s+/).filter(Boolean).length;
 
 const jsonLd = {
   '@context': 'https://schema.org',
   '@type': 'BlogPosting',
-  headline: `Day ${day}, ${name}`,
+  '@id': `${url}#post`,
+  headline: dayHeadline(info),
   description,
   datePublished: isoDate(date),
   url,
   mainEntityOfPage: url,
-  author: { '@type': 'Person', name: hiker.name, alternateName: hiker.trailName, url: new URL('/', siteUrl).href },
-  ...(jsonLdImage && { image: jsonLdImage }),
+  inLanguage: 'en',
+  author: personRef,
+  publisher: { '@id': ids.person },
+  isPartOf: { '@id': ids.blog },
+  about: { '@id': ids.trail },
+  keywords: ['Appalachian Trail', 'thru-hike', state, name].join(', '),
+  ...(wordCount > 0 && { wordCount }),
+  ...(jsonLdImage &&
+    photos[0] && {
+      image: {
+        '@type': 'ImageObject',
+        url: new URL(jsonLdImage.src, siteUrl).href,
+        width: jsonLdImage.attributes.width,
+        height: jsonLdImage.attributes.height,
+        caption: photos[0].alt,
+      },
+    }),
   contentLocation: {
     '@type': 'Place',
     name,
-    geo: { '@type': 'GeoCoordinates', latitude: lat, longitude: long },
+    geo: { '@type': 'GeoCoordinates', latitude: lat, longitude: long, ...(altitude !== undefined && { elevation: `${Math.round(altitude)} ft` }) },
+    address: { '@type': 'PostalAddress', addressRegion: state, addressCountry: 'US' },
   },
-  isPartOf: { '@type': 'Blog', name: `${site.name} Blog`, url: new URL('/blog', siteUrl).href },
-};
-
-const breadcrumbs = {
-  '@context': 'https://schema.org',
-  '@type': 'BreadcrumbList',
-  itemListElement: [
-    { '@type': 'ListItem', position: 1, name: 'Blog', item: new URL('/blog', siteUrl).href },
-    { '@type': 'ListItem', position: 2, name: `Day ${day}`, item: url },
-  ],
 };
 
 const coordinates = `${Math.abs(lat).toFixed(4)}° ${lat >= 0 ? 'N' : 'S'}, ${Math.abs(long).toFixed(4)}° ${long >= 0 ? 'E' : 'W'}`;
 ---
 
-<BaseLayout page={page} image={photos[0]?.src} imageAlt={photos[0]?.alt}>
-  <JsonLd slot="head" data={[jsonLd, breadcrumbs]} />
+<BaseLayout
+  page={page}
+  image={photos[0]?.src}
+  imageAlt={photos[0]?.alt}
+  crumbs={[
+    { name: 'Blog', path: '/blog' },
+    { name: `Day ${day}`, path: `/blog/${day}` },
+  ]}
+>
+  <JsonLd slot="head" data={jsonLd} />
 
   <article class="pb-10 md:pb-16">
-    <header class:list={['border-b border-cream/15', !lead && 'bg-bark/40']}>
-      <div class:list={['container mx-auto px-4 sm:px-6', lead ? 'pt-6 pb-6 md:pt-8' : 'pt-6 pb-8 md:pt-8 md:pb-12']}>
-        <nav aria-label="Breadcrumb" class="mb-6 text-sm md:mb-8">
+    <div class="container mx-auto px-4 sm:px-6">
+      <!-- One calm journal column, the width of the text. -->
+      <div class="mx-auto max-w-[42rem]">
+        <nav aria-label="Breadcrumb" class="pt-6 text-sm md:pt-8">
           <ol class="flex items-center gap-2 text-cream-400">
             <li><a href="/blog" class="hover:text-cream">Blog</a></li>
             <li aria-hidden="true" class="text-cream-600">/</li>
@@ -85,98 +117,151 @@ const coordinates = `${Math.abs(lat).toFixed(4)}° ${lat >= 0 ? 'N' : 'S'}, ${Ma
           </ol>
         </nav>
 
-        <div class:list={['flex gap-5 md:gap-8', lead ? 'items-end' : 'items-end md:items-center']}>
+        <header class="mt-6 flex items-end gap-5 border-b border-cream/15 pb-6 md:mt-8">
           {
             !lead && (
-              <p class="font-display text-[clamp(4.5rem,3rem+7vw,9rem)] leading-[0.8] text-rust-300/90" aria-hidden="true">
+              <p class="font-display text-[clamp(4rem,3rem+4vw,6.5rem)] leading-[0.8] text-rust-300/90" aria-hidden="true">
                 {day}
               </p>
             )
           }
-          <div>
-            <p class="eyebrow mb-3">Day {day} &middot; {state}{day === 0 && ' · Approach trail'}</p>
-            <h1 class="page-title max-w-4xl">{name}</h1>
-            <p class="mt-3 text-sm text-cream-400">
-              <time datetime={isoDate(date)}>{formatDate(date)}</time>
+          <div class="min-w-0">
+            <p class="eyebrow mb-2">Day {day} &middot; {state}{day === 0 && ' · Approach trail'}</p>
+            <h1 class="page-title">{name}</h1>
+            <p class="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-cream-400">
+              <time datetime={isoDate(date)} class="text-cream-200">{formatDate(date)}</time>
+              <a
+                href={getMapLink(day)}
+                class="group inline-flex items-center gap-1.5 rounded-photo font-medium text-rust-300 underline decoration-rust-400/50 underline-offset-4 transition-colors hover:text-cream hover:decoration-cream"
+              >
+                <svg
+                  class="size-[1.1em] shrink-0 translate-y-px"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.8"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  aria-hidden="true"
+                >
+                  <path d="M12 21s-6.5-5.6-6.5-11a6.5 6.5 0 0 1 13 0c0 5.4-6.5 11-6.5 11Z" />
+                  <circle cx="12" cy="10" r="2.4" />
+                </svg>
+                See on the map
+              </a>
             </p>
           </div>
-        </div>
-      </div>
-    </header>
+        </header>
 
-    {
-      lead && (
-        <figure class="container mx-auto mt-6 px-4 sm:px-6">
-          <div class="flex justify-center overflow-hidden rounded-photo bg-bark">
-            <Image
-              src={lead.src}
-              alt={lead.alt}
-              format="webp"
-              widths={[640, 960, 1280, 1600, 2000].filter((w) => w <= lead.src.width)}
-              width={Math.min(lead.src.width, 2000)}
-              quality={72}
-              loading="eager"
-              fetchpriority="high"
-              sizes="(min-width: 96rem) 1488px, (min-width: 80rem) 1232px, calc(100vw - 2rem)"
-              class="max-h-[75vh] w-auto object-contain"
-            />
-          </div>
-          <figcaption class="mt-2 text-xs text-cream-400">{lead.alt}</figcaption>
-        </figure>
-      )
-    }
-
-    <div class="container mx-auto px-4 sm:px-6">
-      <dl class="mt-6 grid grid-cols-2 gap-px overflow-hidden rounded-photo border border-cream/15 bg-cream/15 sm:grid-cols-3 lg:grid-cols-5">
         {
-          [
-            { label: 'Day', value: String(day) },
-            { label: 'Miles today', value: formatMiles(mileage) },
-            { label: 'State', value: state },
-            { label: 'Trail miles so far', value: formatMiles(milesSoFar) },
-            { label: 'To Katahdin', value: `${formatMiles(milesToGo)} mi` },
-          ].map((stat, i) => (
-            <div class:list={['bg-ink px-4 py-3', i === 4 && 'col-span-2 sm:col-span-1']}>
-              <dt class="text-[0.7rem] font-medium tracking-[0.14em] text-cream-400 uppercase">{stat.label}</dt>
-              <dd class="mt-1 text-lg font-medium text-cream tabular-nums">{stat.value}</dd>
-            </div>
-          ))
-        }
-      </dl>
-      <p class="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-xs text-cream-400 tabular-nums">
-        {altitude !== undefined && <span>Elevation {Math.round(altitude).toLocaleString('en-US')} ft</span>}
-        <span>
-          <span class="sr-only">Latitude {lat}, longitude {long}: </span><span aria-hidden="true">{coordinates}</span>
-        </span>
-        <a href="/map" class="font-medium text-rust-300 underline decoration-rust-400/60 underline-offset-4 hover:text-cream">
-          See on the map
-        </a>
-      </p>
-
-      <div class="pt-8 md:pt-10">
-        {
-          hasText ? (
-            <div class="prose prose-trail">
-              <Content />
-            </div>
-          ) : (
-            <p class="text-cream-400">No journal notes for this day.</p>
+          lead && (
+            <figure class="mt-6">
+              <a
+                href={lead.viewerSrc}
+                data-lightbox-index={0}
+                data-srcset={lead.viewerSrcset}
+                class="group flex justify-center overflow-hidden rounded-photo bg-bark"
+                aria-label={`Open photo: ${lead.alt}`}
+              >
+                <Image
+                  src={lead.src}
+                  alt={lead.alt}
+                  format="webp"
+                  widths={[480, 672, 960, 1344].filter((w) => w <= lead.src.width)}
+                  width={Math.min(lead.src.width, 1344)}
+                  quality={72}
+                  loading="eager"
+                  fetchpriority="high"
+                  sizes="(min-width: 46rem) 672px, calc(100vw - 2rem)"
+                  class="max-h-[50vh] w-auto object-contain md:max-h-[60vh]"
+                />
+              </a>
+              <figcaption class="mt-2 text-xs text-cream-400">{lead.alt}</figcaption>
+            </figure>
           )
         }
+
+        <dl
+          class:list={[
+            'grid grid-cols-2 gap-x-6 gap-y-4 border-b border-cream/15 py-4 sm:grid-cols-[1fr_1.6fr_1fr_1fr_1fr] sm:gap-x-4',
+            lead ? 'mt-6 border-t' : 'mt-0',
+          ]}
+        >
+          {
+            [
+              { label: 'Miles today', value: formatMiles(mileage) },
+              { label: 'State', value: state },
+              { label: 'So far', value: formatMiles(milesSoFar) },
+              { label: 'To Katahdin', value: formatMiles(milesToGo) },
+              { label: 'Elevation', value: altitude !== undefined ? `${Math.round(altitude).toLocaleString('en-US')} ft` : '—' },
+            ].map((stat) => (
+              <div>
+                <dt class="text-[0.68rem] font-medium tracking-[0.14em] text-cream-400 uppercase">{stat.label}</dt>
+                <dd class="mt-0.5 text-base font-medium text-cream tabular-nums">{stat.value}</dd>
+              </div>
+            ))
+          }
+        </dl>
+        <p class="mt-2 flex flex-wrap justify-between gap-x-4 gap-y-1 text-xs text-cream-600">
+          <span class="tabular-nums">
+            <span class="sr-only">Latitude {lat}, longitude {long}: </span><span aria-hidden="true">{coordinates}</span>
+          </span>
+          <a href={trailMap.tripUrl} class="text-cream-400 underline decoration-cream/30 underline-offset-2 hover:text-cream">
+            Interactive Appalachian Trail map by Adventure Mapper
+          </a>
+        </p>
+
+        <div class="pt-8">
+          {
+            hasText ? (
+              <div class="prose prose-trail max-w-none">
+                <Content />
+              </div>
+            ) : (
+              <p class="text-cream-400">No journal notes for this day.</p>
+            )
+          }
+        </div>
+
+        {
+          morePhotos.length > 0 && (
+            <section class="mt-8" aria-label={`More photos from day ${day}`} data-reveal>
+              <ul class:list={['grid gap-2 sm:gap-3', morePhotos.length >= 3 ? 'grid-cols-2 sm:grid-cols-3' : 'grid-cols-2']}>
+                {morePhotos.map((photo, i) => (
+                  <li>
+                    <a
+                      href={photo.viewerSrc}
+                      data-lightbox-index={i + 1}
+                      data-srcset={photo.viewerSrcset}
+                      class="group block overflow-hidden rounded-photo bg-bark"
+                    >
+                      <Image
+                        src={photo.src}
+                        alt={photo.alt}
+                        format="webp"
+                        widths={[240, 360, 480, 720].filter((w) => w <= photo.src.width)}
+                        width={Math.min(photo.src.width, 720)}
+                        quality={70}
+                        loading="lazy"
+                        decoding="async"
+                        sizes={morePhotos.length >= 3 ? '(min-width: 40rem) 216px, calc(50vw - 1.25rem)' : '(min-width: 46rem) 330px, calc(50vw - 1.25rem)'}
+                        class="aspect-[4/3] h-auto w-full object-cover transition-transform duration-500 group-hover:scale-[1.03] motion-reduce:transition-none motion-reduce:group-hover:scale-100"
+                      />
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )
+        }
+
+        <nav aria-label="Day navigation" class="mt-10 grid grid-cols-1 gap-3 border-t border-cream/15 pt-6 sm:grid-cols-2">
+          <div>{prev && <DayCard day={prev.entry} state={prev.state} label="Previous day" class="h-full" />}</div>
+          <div>{next && <DayCard day={next.entry} state={next.state} label="Next day" align="end" class="h-full" />}</div>
+        </nav>
       </div>
-
-      {
-        morePhotos.length > 0 && (
-          <div class="mt-8 md:mt-12" data-reveal>
-            <PhotoGrid photos={morePhotos} label={`More photos from day ${day}`} />
-          </div>
-        )
-      }
-
-      <nav aria-label="Day navigation" class="mt-8 grid grid-cols-1 gap-3 border-t border-cream/15 pt-6 sm:grid-cols-2 md:mt-12 md:pt-8">
-        <div>{prev && <DayCard day={prev.entry} state={prev.state} label="Previous day" />}</div>
-        <div>{next && <DayCard day={next.entry} state={next.state} label="Next day" align="end" />}</div>
-      </nav>
     </div>
   </article>
+
+  {photos.length > 0 && <PhotoViewer />}
 </BaseLayout>

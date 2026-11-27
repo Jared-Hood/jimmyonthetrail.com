@@ -1,5 +1,5 @@
 ---
-import { nav, site } from '../data/site';
+import { nav, site, trailMap } from '../data/site';
 
 const year = new Date().getFullYear();
 ---
@@ -10,6 +10,11 @@ const year = new Date().getFullYear();
       <p class="font-display text-2xl text-cream">{site.name}</p>
       <p class="mt-2 text-sm text-cream-400">
         Springer Mountain, Georgia to Mount Katahdin, Maine &middot; 2022
+      </p>
+      <p class="mt-2 text-xs text-cream-400">
+        <a href={trailMap.tripUrl} class="underline decoration-cream/30 underline-offset-2 hover:text-cream">
+          Interactive Appalachian Trail map by Adventure Mapper
+        </a>
       </p>
     </div>
 

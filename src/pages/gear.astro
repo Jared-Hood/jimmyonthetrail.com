@@ -1,12 +1,29 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 import PageHeader from '../components/PageHeader.astro';
-import { pages } from '../data/site';
+import JsonLd from '../components/JsonLd.astro';
+import { pages, site } from '../data/site';
+import { personRef } from '../lib/schema';
 import { baseWeight, gearIntro, gearSections } from '../data/gear';
+
+const gearLd = {
+  '@context': 'https://schema.org',
+  '@type': 'ItemList',
+  '@id': `${site.url}/gear#list`,
+  name: 'Appalachian Trail thru-hike gear list',
+  description: pages.gear.description,
+  url: `${site.url}/gear`,
+  author: personRef,
+  numberOfItems: gearSections.reduce((sum, section) => sum + section.items.length, 0),
+  itemListElement: gearSections
+    .flatMap((section) => section.items.map((item) => `${section.title}: ${item}`))
+    .map((name, i) => ({ '@type': 'ListItem', position: i + 1, name })),
+};
 ---
 
 <BaseLayout page={pages.gear}>
-  <PageHeader title="Gear" eyebrow="What I carried">
+  <JsonLd slot="head" data={gearLd} />
+  <PageHeader title="Gear" eyebrow="What I carried on the Appalachian Trail">
     <div class="mt-6 grid gap-6 md:mt-8 lg:grid-cols-12 lg:gap-x-12">
       <p class="prose prose-trail lg:col-span-7">{gearIntro}</p>
 

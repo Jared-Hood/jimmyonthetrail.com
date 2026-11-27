@@ -2,7 +2,8 @@
 import { Image } from 'astro:assets';
 import BaseLayout from '../layouts/BaseLayout.astro';
 import JsonLd from '../components/JsonLd.astro';
-import { hiker, pages, site } from '../data/site';
+import { pages } from '../data/site';
+import { person, website } from '../lib/schema';
 
 import skyline from '../assets/images/skyline.jpeg';
 import summit from '../assets/images/Summit.jpg';
@@ -38,25 +39,7 @@ const aboutPhotos = [
     slot="head"
     data={{
       '@context': 'https://schema.org',
-      '@graph': [
-        {
-          '@type': 'WebSite',
-          '@id': `${site.url}/#website`,
-          name: site.name,
-          url: `${site.url}/`,
-          description: pages.home.description,
-          inLanguage: 'en',
-          author: { '@id': `${site.url}/#jimmy` },
-        },
-        {
-          '@type': 'Person',
-          '@id': `${site.url}/#jimmy`,
-          name: hiker.name,
-          alternateName: hiker.trailName,
-          url: `${site.url}/`,
-          description: 'Appalachian Trail thru-hiker, Georgia to Maine, 2022.',
-        },
-      ],
+      '@graph': [{ ...website, description: pages.home.description }, person],
     }}
   />
   <!-- Hero -->

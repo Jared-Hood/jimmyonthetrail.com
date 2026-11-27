@@ -187,6 +187,10 @@ Days 22, 36 and 42 already had single line breaks that rendered as one paragraph
 - 66: "off to the camp store to for snack-food" has a stray word, but which one was meant is unclear.
 - 68: the entry ends mid-word ("our las"); it was already cut off in the original data.
 - 102: "Mt Alago Shelter" is probably Mt. Algo Shelter; the place name was left as written.
-- 0 and 1 titles: the day 0 title is "Amicola Falls" (Amicalola Falls). Only the spelling in day 1's text was fixed; titles were not changed.
+- Day 0 title: fixed later at the owner's request (see "Title fixes" below).
 - Lowercase or inconsistent capitals in names (woods Hole, pen mar park, sunoco, youtube) and informal spellings (eattttt, upppppp, steeeereep, gator-aid, lemon-aid, dam, pricy) were kept as Jimmy's style.
 - Grammar such as "there was huge flakes", "Everyone we have met say", "alcohol was not allow", "two night" and "multiple time in different location" was not touched.
+
+## Title fixes
+
+- 0: title `Amicola Falls` -> `Amicalola Falls` (frontmatter `name`; updates the page title, heading, schema, blog card and the previous/next card on day 1).
