@@ -1,0 +1,191 @@
+---
+import type { GetStaticPaths } from 'astro';
+import { getImage } from 'astro:assets';
+import { render } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import PhotoGrid from '../../components/PhotoGrid.astro';
+import JsonLd from '../../components/JsonLd.astro';
+import { hiker, site } from '../../data/site';
+import {
+  TRAIL_TOTAL_MILES,
+  formatDate,
+  formatMiles,
+  getDays,
+  isoDate,
+  resolveDayImage,
+  type Day,
+} from '../../lib/days';
+
+export const getStaticPaths = (async () => {
+  const days = await getDays();
+  let runningMiles = 0;
+  return days.map((entry, index) => {
+    runningMiles += entry.data.mileage;
+    return {
+      params: { day: String(entry.data.day) },
+      props: {
+        entry,
+        milesSoFar: runningMiles,
+        prev: index > 0 ? days[index - 1] : undefined,
+        next: index < days.length - 1 ? days[index + 1] : undefined,
+      },
+    };
+  });
+}) satisfies GetStaticPaths;
+
+interface Props {
+  entry: Day;
+  milesSoFar: number;
+  prev?: Day;
+  next?: Day;
+}
+
+const { entry, milesSoFar, prev, next } = Astro.props;
+const { day, name, date, lat, long, mileage, altitude, images } = entry.data;
+
+const description = `On day ${day} I traveled through ${name}!`;
+const page = { name: `Day ${day}, ${name}`, description, slug: `blog/${day}` };
+const hasText = Boolean(entry.body?.trim());
+const { Content } = await render(entry);
+
+const photos = images.map((image) => ({ src: resolveDayImage(image.src), alt: image.alt }));
+
+const siteUrl = Astro.site ?? new URL(site.url);
+const url = new URL(`/blog/${day}`, siteUrl).href;
+const jsonLdImage = photos[0]
+  ? new URL((await getImage({ src: photos[0].src, width: 1200, format: 'jpg', quality: 80 })).src, siteUrl).href
+  : undefined;
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'BlogPosting',
+  headline: `Day ${day}, ${name}`,
+  description,
+  datePublished: isoDate(date),
+  url,
+  mainEntityOfPage: url,
+  author: { '@type': 'Person', name: hiker.name, alternateName: hiker.trailName, url: new URL('/', siteUrl).href },
+  ...(jsonLdImage && { image: jsonLdImage }),
+  contentLocation: {
+    '@type': 'Place',
+    name,
+    geo: { '@type': 'GeoCoordinates', latitude: lat, longitude: long },
+  },
+  isPartOf: { '@type': 'Blog', name: `${site.name} Blog`, url: new URL('/blog', siteUrl).href },
+};
+
+const breadcrumbs = {
+  '@context': 'https://schema.org',
+  '@type': 'BreadcrumbList',
+  itemListElement: [
+    { '@type': 'ListItem', position: 1, name: 'Blog', item: new URL('/blog', siteUrl).href },
+    { '@type': 'ListItem', position: 2, name: `Day ${day}`, item: url },
+  ],
+};
+
+const coordinates = `${Math.abs(lat).toFixed(4)}° ${lat >= 0 ? 'N' : 'S'}, ${Math.abs(long).toFixed(4)}° ${long >= 0 ? 'E' : 'W'}`;
+---
+
+<BaseLayout page={page} image={photos[0]?.src} imageAlt={photos[0]?.alt}>
+  <JsonLd slot="head" data={[jsonLd, breadcrumbs]} />
+
+  <article class="pb-section">
+    <header class="border-b border-cream/15 pt-10 pb-10 lg:pt-14 lg:pb-14">
+      <div class="page-container">
+        <nav aria-label="Breadcrumb" class="mb-10 text-sm">
+          <ol class="flex items-center gap-2 text-cream-400">
+            <li><a href="/blog" class="hover:text-cream">Blog</a></li>
+            <li aria-hidden="true" class="text-cream-600">/</li>
+            <li aria-current="page" class="text-cream-200">Day {day}</li>
+          </ol>
+        </nav>
+
+        <p class="eyebrow mb-4">Day {day}{day === 0 && ' · Approach trail'}</p>
+        <h1 class="max-w-4xl font-display text-3xl font-normal text-cream sm:text-[clamp(2.75rem,1.8rem+3vw,4.25rem)] sm:leading-none">
+          {name}
+        </h1>
+
+        <dl class="mt-10 grid grid-cols-2 gap-x-8 gap-y-6 sm:flex sm:flex-wrap sm:gap-x-12">
+          <div class="border-l border-rust-400 pl-4">
+            <dt class="text-xs font-medium tracking-[0.14em] text-cream-400 uppercase">Date</dt>
+            <dd class="mt-1 text-cream"><time datetime={isoDate(date)}>{formatDate(date)}</time></dd>
+          </div>
+          <div class="border-l border-rust-400 pl-4">
+            <dt class="text-xs font-medium tracking-[0.14em] text-cream-400 uppercase">Miles today</dt>
+            <dd class="mt-1 text-cream tabular-nums">{formatMiles(mileage)}</dd>
+          </div>
+          <div class="border-l border-rust-400 pl-4">
+            <dt class="text-xs font-medium tracking-[0.14em] text-cream-400 uppercase">Trail miles so far</dt>
+            <dd class="mt-1 text-cream tabular-nums">
+              {formatMiles(Math.round(milesSoFar * 10) / 10)} <span class="text-cream-400">/ {formatMiles(TRAIL_TOTAL_MILES)}</span>
+            </dd>
+          </div>
+          {
+            altitude !== undefined && (
+              <div class="border-l border-rust-400 pl-4">
+                <dt class="text-xs font-medium tracking-[0.14em] text-cream-400 uppercase">Elevation</dt>
+                <dd class="mt-1 text-cream tabular-nums">{Math.round(altitude).toLocaleString('en-US')} ft</dd>
+              </div>
+            )
+          }
+          <div class="col-span-2 border-l border-rust-400 pl-4 sm:col-span-1">
+            <dt class="text-xs font-medium tracking-[0.14em] text-cream-400 uppercase">Location</dt>
+            <dd class="mt-1 text-cream tabular-nums">
+              <span class="sr-only">Latitude {lat}, longitude {long}: </span><span aria-hidden="true">{coordinates}</span>
+              <a href="/map" class="ml-3 text-sm font-medium whitespace-nowrap text-rust-300 underline decoration-rust-400/60 underline-offset-4 hover:text-cream">
+                See on the map
+              </a>
+            </dd>
+          </div>
+        </dl>
+      </div>
+    </header>
+
+    <div class="page-container pt-block">
+      {
+        hasText ? (
+          <div class="prose prose-trail">
+            <Content />
+          </div>
+        ) : (
+          <p class="text-cream-400">No journal notes for this day.</p>
+        )
+      }
+
+      {
+        photos.length > 0 && (
+          <div class="mt-block">
+            <PhotoGrid photos={photos} label={`Photos from day ${day}`} />
+          </div>
+        )
+      }
+
+      <nav aria-label="Day navigation" class="mt-block grid grid-cols-2 gap-4 border-t border-cream/15 pt-8">
+        <div>
+          {
+            prev && (
+              <a href={`/blog/${prev.data.day}`} class="group block">
+                <span class="text-xs font-medium tracking-[0.14em] text-cream-400 uppercase">← Day {prev.data.day}</span>
+                <span class="mt-1 block text-cream group-hover:underline group-hover:decoration-rust-400 group-hover:underline-offset-4">
+                  {prev.data.name}
+                </span>
+              </a>
+            )
+          }
+        </div>
+        <div class="text-right">
+          {
+            next && (
+              <a href={`/blog/${next.data.day}`} class="group block">
+                <span class="text-xs font-medium tracking-[0.14em] text-cream-400 uppercase">Day {next.data.day} →</span>
+                <span class="mt-1 block text-cream group-hover:underline group-hover:decoration-rust-400 group-hover:underline-offset-4">
+                  {next.data.name}
+                </span>
+              </a>
+            )
+          }
+        </div>
+      </nav>
+    </div>
+  </article>
+</BaseLayout>

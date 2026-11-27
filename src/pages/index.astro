@@ -1,16 +1,219 @@
 ---
+import { Image } from 'astro:assets';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import JsonLd from '../components/JsonLd.astro';
+import { hiker, pages, site } from '../data/site';
+
+import skyline from '../assets/images/skyline.jpeg';
+import summit from '../assets/images/Summit.jpg';
+import photo1 from '../assets/images/home/1.jpg';
+import photo2 from '../assets/images/home/2.jpg';
+import photo3 from '../assets/images/home/3.jpg';
+import photo4 from '../assets/images/home/4.jpg';
+import photo5 from '../assets/images/home/5.jpg';
+import photo6 from '../assets/images/home/6.jpg';
+
+const stats = [
+  { value: '2194.3', label: 'Miles traveled' },
+  { value: '5,904,703', label: 'Steps taken' },
+  { value: '4', label: 'Pairs of shoes' },
+  { value: '157', label: 'Days on trail' },
+  { value: '11', label: 'Zero days', note: 'no miles traveled' },
+];
+
+// Order matters: it drives the two-column zigzag grid (portraits span two rows).
+const aboutPhotos = [
+  { src: photo1, alt: 'Jimmy leaning on an Appalachian Trail plaque set in stone', portrait: true },
+  { src: photo2, alt: 'Jimmy walking three dogs across a wide sandy beach', portrait: false },
+  { src: photo4, alt: 'Jimmy taking a selfie with three young hikers on a wooded trail', portrait: false },
+  { src: photo5, alt: 'Jimmy and a young man smiling in a selfie on a grassy path', portrait: false },
+  { src: photo3, alt: 'Jimmy standing with a woman in a pink dress at sunset', portrait: true },
+  { src: photo6, alt: 'Jimmy and friends at a campsite picnic table beside an Airstream trailer, dogs resting nearby', portrait: false },
+];
+
 ---
 
-<html lang="en">
-	<head>
-		<meta charset="utf-8" />
-		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-		<link rel="icon" href="/favicon.ico" />
-		<meta name="viewport" content="width=device-width" />
-		<meta name="generator" content={Astro.generator} />
-		<title>Astro</title>
-	</head>
-	<body>
-		<h1>Astro</h1>
-	</body>
-</html>
+<BaseLayout page={pages.home}>
+  <JsonLd
+    slot="head"
+    data={{
+      '@context': 'https://schema.org',
+      '@graph': [
+        {
+          '@type': 'WebSite',
+          '@id': `${site.url}/#website`,
+          name: site.name,
+          url: `${site.url}/`,
+          description: pages.home.description,
+          inLanguage: 'en',
+          author: { '@id': `${site.url}/#jimmy` },
+        },
+        {
+          '@type': 'Person',
+          '@id': `${site.url}/#jimmy`,
+          name: hiker.name,
+          alternateName: hiker.trailName,
+          url: `${site.url}/`,
+          description: 'Appalachian Trail thru-hiker, Georgia to Maine, 2022.',
+        },
+      ],
+    }}
+  />
+  <!-- Hero -->
+  <section class="relative isolate overflow-hidden" aria-labelledby="hero-title">
+    <Image
+      src={skyline}
+      alt=""
+      format="webp"
+      widths={[640, 1024, 1440, 1800]}
+      width={1800}
+      quality={70}
+      sizes="100vw"
+      loading="eager"
+      fetchpriority="high"
+      class="absolute inset-0 -z-10 h-full w-full object-cover object-[50%_60%]"
+    />
+    <div class="absolute inset-0 -z-10 bg-gradient-to-t from-ink/90 via-ink/50 to-ink/5" aria-hidden="true"></div>
+
+    <div class="page-container flex min-h-[26rem] flex-col justify-end pt-24 pb-12 sm:min-h-[34rem] lg:min-h-[min(44rem,78vh)] lg:pb-16">
+      <p class="eyebrow mb-5 !text-cream-200">Appalachian Trail &middot; 2022</p>
+      <h1 id="hero-title" class="flex flex-col font-display text-display font-normal text-cream">
+        <span>Jimmy on the Trail</span>
+        <span class="mt-4 text-2xl text-cream-200 sm:mt-6 sm:text-3xl">RocketMan 🚀</span>
+      </h1>
+    </div>
+  </section>
+
+  <!-- That's a Wrap -->
+  <section class="py-section" aria-labelledby="wrap-title">
+    <div class="page-container grid gap-y-12 lg:grid-cols-12 lg:gap-x-16">
+      <figure class="lg:col-span-5 lg:pt-3">
+        <Image
+          src={summit}
+          alt="Jimmy with arms raised, standing on the Katahdin summit sign in the fog"
+          format="webp"
+          widths={[480, 720, 960, 1280]}
+          width={1280}
+          quality={72}
+          sizes="(min-width: 76rem) 440px, (min-width: 64rem) 38vw, (min-width: 40rem) 32rem, calc(100vw - 2rem)"
+          class="mx-auto aspect-[3/4] w-full max-w-lg rounded-photo object-cover lg:max-w-none"
+        />
+        <figcaption class="mx-auto mt-3 flex max-w-lg items-baseline gap-3 text-xs tracking-[0.08em] text-cream-400 lg:max-w-none">
+          <span class="h-px w-8 shrink-0 translate-y-[-0.25em] bg-rust" aria-hidden="true"></span>
+          Mount Katahdin, Maine
+        </figcaption>
+      </figure>
+
+      <div class="lg:col-span-7">
+        <p class="eyebrow mb-4">The finish</p>
+        <h2 id="wrap-title" class="mb-8 font-display text-3xl font-normal text-cream">That's a Wrap!</h2>
+        <div class="prose prose-trail">
+          <p>
+            To all my friends and family that followed my AT adventure and provided words of encouragement THANK YOU!
+            I would not of finished without your support.
+          </p>
+          <p>
+            I can say that the AT gave me the opportunity to experience a part of America that most Americans will
+            never see. The people I met were from many different professions - recent high school graduates, firemen,
+            nurses, truck drivers, layers, doctors, rocket scientist, etc… they spanned the ages of 18 to 80 and all
+            had their own reason to be on trail. These people were some of the best of America and other countries and
+            they could be counted on to help each other and provide encouragement when times were hard.
+          </p>
+          <p>
+            The numerous small towns that I would likely never visit added to the adventure with great food, drink and
+            interesting people.
+          </p>
+          <p>
+            Finally if you were ever considering on venturing out on a journey yourself I would encourage you to GO it
+            can be the best adventure you ever have. Be safe and be kind to each other!
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Final stats -->
+  <section class="border-y border-cream/20 bg-bark" aria-labelledby="stats-title">
+    <div class="page-container py-block">
+      <h2 id="stats-title" class="eyebrow !text-cream-200">Some Final Stats</h2>
+      <p class="mt-2 mb-8 text-sm text-cream-200">
+        Springer Mountain, Georgia to Mt Katahdin, Maine &middot; March 14 to August 17, 2022
+      </p>
+      <dl class="flex flex-wrap gap-x-8 gap-y-8 lg:gap-x-12">
+        {
+          stats.map((stat) => (
+            <div class="flex min-w-fit flex-1 basis-[8.5rem] flex-col-reverse justify-end gap-2 border-l border-rust-400 pl-4">
+              <dt class="text-xs font-medium uppercase tracking-[0.14em] text-cream-400">
+                {stat.label}
+                {stat.note && <span class="block font-light normal-case tracking-[0.04em]">({stat.note})</span>}
+              </dt>
+              <dd class="text-[clamp(1.625rem,1.1rem+1.6vw,2.5rem)] leading-none font-medium tabular-nums tracking-tight whitespace-nowrap text-cream">
+                {stat.value}
+              </dd>
+            </div>
+          ))
+        }
+      </dl>
+    </div>
+  </section>
+
+  <!-- About me -->
+  <section class="py-section" aria-labelledby="about-title">
+    <div class="page-container">
+      <div class="grid gap-y-8 lg:grid-cols-12 lg:gap-x-16">
+        <div class="lg:col-span-4">
+          <div class="lg:sticky lg:top-10">
+            <p class="eyebrow mb-4">Before the trail</p>
+            <h2 id="about-title" class="font-display text-3xl font-normal text-cream">About Me</h2>
+          </div>
+        </div>
+
+        <div class="prose prose-trail lg:col-span-8">
+          <p>
+            Hi, I'm Jimmy and I am an Appalachian Trail through-hiker! I've dreamed of hiking the trail for quite
+            sometime, making the decision in 2016 after a serious medical scare that made me realize I needed to quit
+            dreaming of hiking and make it a reality. 2022 became the year that would fit with my wife’s and my current
+            and future plans to take a step back from the 9-5 grind of working in rooms without windows and stepping
+            out into the great outdoors to see a part of America that most never venture to experience.
+          </p>
+          <p>
+            The hike starts March 14 and will continue for about 4 to 5 months. You can follow me along the trail with
+            posted tracking updates, photos and blog posts, and maybe even some GoPro footage of critters, scenery and
+            me!
+          </p>
+          <p>
+            As background on The Appalachian Trail, it's a 2193 mile trail marked by white blazes starting on Springer
+            Mountain in Georgia passing through 14 states and ending atop Mt Katahdin in Maine. You can find additional
+            information <a href="https://appalachiantrail.org/explore/">here</a>.
+          </p>
+          <p>
+            Time to head North to follow my dream, engage in adventure, and experience a euphoric sense of freedom and
+            contentment!
+          </p>
+        </div>
+      </div>
+
+      <ul class="mt-block grid gap-3 sm:grid-cols-2 sm:gap-4" aria-label="Photos of Jimmy">
+        {
+          aboutPhotos.map((photo) => (
+            <li class:list={[photo.portrait && 'sm:row-span-2']}>
+              <Image
+                src={photo.src}
+                alt={photo.alt}
+                format="webp"
+                widths={[400, 600, 800, 1200]}
+                width={1200}
+                quality={72}
+                sizes="(min-width: 76rem) 560px, (min-width: 40rem) calc(50vw - 3rem), calc(100vw - 2rem)"
+                class:list={[
+                  'h-full w-full rounded-photo bg-bark object-cover',
+                  photo.portrait ? 'aspect-[3/4] sm:aspect-auto' : 'aspect-[4/3]',
+                ]}
+              />
+            </li>
+          ))
+        }
+      </ul>
+    </div>
+  </section>
+</BaseLayout>

@@ -1,0 +1,27 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import TrailMap from '../components/TrailMap.astro';
+import MilesProgress from '../components/MilesProgress.astro';
+import { pages } from '../data/site';
+import { TRAIL_TOTAL_MILES, getDays, totalMiles } from '../lib/days';
+
+const traveled = totalMiles(await getDays());
+---
+
+<BaseLayout page={pages.map}>
+  <section class="border-b border-cream/15 pt-block pb-10 lg:pt-20">
+    <div class="page-container grid gap-10 lg:grid-cols-12 lg:items-end lg:gap-x-16">
+      <div class="lg:col-span-6">
+        <p class="eyebrow mb-4">The route, day by day</p>
+        <h1 class="font-display text-3xl font-normal text-cream sm:text-[clamp(2.75rem,1.8rem+3vw,4.25rem)] sm:leading-none">
+          Where is Jimmy?
+        </h1>
+      </div>
+      <div class="lg:col-span-5 lg:col-start-8">
+        <MilesProgress traveled={traveled} total={TRAIL_TOTAL_MILES} />
+      </div>
+    </div>
+  </section>
+
+  <TrailMap />
+</BaseLayout>

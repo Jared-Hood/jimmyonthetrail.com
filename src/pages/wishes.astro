@@ -1,0 +1,61 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import PageHeader from '../components/PageHeader.astro';
+import { pages } from '../data/site';
+import wishesData from '../data/wishes.json';
+import { hiddenFragments, hiddenPranks, messageOverrides } from '../data/wishes-moderation';
+
+interface Wish {
+  id: string;
+  name: string;
+  message: string;
+  createdAt: string;
+}
+
+const wishes = (wishesData as Wish[])
+  .filter((wish) => !hiddenPranks.has(wish.id) && !hiddenFragments.has(wish.id))
+  .map((wish) => ({ ...wish, message: messageOverrides[wish.id] ?? wish.message }));
+
+const monthFormat = new Intl.DateTimeFormat('en-US', { month: 'long', year: 'numeric', timeZone: 'UTC' });
+const dayFormat = new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' });
+
+// Group by month so the guestbook reads like the trail calendar.
+const groups = new Map<string, Wish[]>();
+for (const wish of wishes) {
+  const key = monthFormat.format(new Date(wish.createdAt));
+  groups.set(key, [...(groups.get(key) ?? []), wish]);
+}
+---
+
+<BaseLayout page={pages.wishes}>
+  <PageHeader title="Well Wishes" eyebrow={`${wishes.length} messages from friends and family`}>
+    <p class="mt-8 max-w-[40rem] border-l border-rust-400 pl-5 text-lg leading-relaxed text-cream-200">
+      The trail is finished and the guestbook is closed. Thank you to everyone who sent Jimmy a message along the way.
+    </p>
+  </PageHeader>
+
+  <section class="py-block lg:pb-section" aria-label="Messages">
+    <div class="page-container">
+      {
+        [...groups.entries()].map(([month, items]) => (
+          <section class="grid gap-x-16 gap-y-4 border-b border-cream/10 py-10 first:pt-0 last:border-b-0 lg:grid-cols-12">
+            <h2 class="text-xs font-medium tracking-[0.14em] text-rust-300 uppercase lg:col-span-3 lg:pt-1">{month}</h2>
+            <ol class="space-y-7 lg:col-span-9">
+              {items.map((wish) => (
+                <li>
+                  <blockquote class="max-w-[42rem] text-lg leading-relaxed text-cream-200">{wish.message}</blockquote>
+                  <p class="mt-2 flex flex-wrap gap-x-3 text-sm">
+                    <span class="font-medium text-cream">{wish.name}</span>
+                    <time class="text-cream-600" datetime={wish.createdAt}>
+                      {dayFormat.format(new Date(wish.createdAt))}
+                    </time>
+                  </p>
+                </li>
+              ))}
+            </ol>
+          </section>
+        ))
+      }
+    </div>
+  </section>
+</BaseLayout>

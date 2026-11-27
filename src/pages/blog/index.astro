@@ -1,0 +1,190 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import PageHeader from '../../components/PageHeader.astro';
+import JsonLd from '../../components/JsonLd.astro';
+import { hiker, pages, site } from '../../data/site';
+import { formatMiles, formatShortDate, getDays, isoDate } from '../../lib/days';
+
+// Day 0 (the approach trail) has its own page but stays out of the index, as on the old site.
+const days = (await getDays()).filter((entry) => entry.data.day > 0);
+
+const blogUrl = `${site.url}/blog`;
+const blogLd = {
+  '@context': 'https://schema.org',
+  '@type': 'Blog',
+  name: `${site.name} Blog`,
+  url: blogUrl,
+  description: pages.blog.description,
+  inLanguage: 'en',
+  author: { '@type': 'Person', name: hiker.name, alternateName: hiker.trailName, url: `${site.url}/` },
+  blogPost: days.map(({ data }) => ({
+    '@type': 'BlogPosting',
+    headline: `Day ${data.day}, ${data.name}`,
+    datePublished: isoDate(data.date),
+    url: `${blogUrl}/${data.day}`,
+  })),
+};
+
+const columns = [
+  { key: 'day', label: 'Day', type: 'number', align: 'left' },
+  { key: 'name', label: 'Location', type: 'text', align: 'left' },
+  { key: 'date', label: 'Date', type: 'text', align: 'left' },
+  { key: 'miles', label: 'Miles', type: 'number', align: 'right' },
+] as const;
+---
+
+<BaseLayout page={pages.blog}>
+  <JsonLd slot="head" data={blogLd} />
+  <PageHeader title="Blog" eyebrow={`${days.length} days, Georgia to Maine`} />
+
+  <section class="pt-10 pb-section" aria-label="Trail journal entries">
+    <div class="page-container">
+      <div class="mb-6 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+        <div class="w-full sm:max-w-sm">
+          <label for="day-search" class="mb-2 block text-xs font-medium tracking-[0.14em] text-cream-400 uppercase">
+            Search
+          </label>
+          <input
+            id="day-search"
+            type="search"
+            autocomplete="off"
+            placeholder="Search for days or locations"
+            class="w-full border-0 border-b border-cream/40 bg-transparent px-0 py-2 text-base text-cream placeholder:text-cream-600 focus:border-cream"
+          />
+        </div>
+        <p id="day-count" class="text-sm text-cream-400" aria-live="polite">
+          Showing {days.length} of {days.length} days
+        </p>
+      </div>
+
+      <div class="-mx-[var(--spacing-gutter)] overflow-x-auto px-[var(--spacing-gutter)]">
+        <table id="day-table" class="w-full border-collapse text-left">
+          <caption class="sr-only">
+            Trail journal days. Column headers are buttons that sort the table.
+          </caption>
+          <thead>
+            <tr class="border-b border-cream/40">
+              {
+                columns.map((column) => (
+                  <th
+                    scope="col"
+                    aria-sort={column.key === 'day' ? 'ascending' : 'none'}
+                    class:list={[
+                      'py-3 pr-4 font-medium last:pr-0',
+                      column.key === 'day' && 'w-14 sm:w-20',
+                      column.key === 'date' && 'w-20 sm:w-36',
+                      column.key === 'miles' && 'hidden w-24 text-right sm:table-cell',
+                    ]}
+                  >
+                    <button
+                      type="button"
+                      data-sort={column.key}
+                      data-type={column.type}
+                      class:list={[
+                        'group inline-flex items-center gap-2 text-xs tracking-[0.14em] text-cream-400 uppercase hover:text-cream',
+                        column.align === 'right' && 'flex-row-reverse',
+                      ]}
+                    >
+                      {column.label}
+                      <span class="w-3 text-rust-300" data-indicator aria-hidden="true" />
+                    </button>
+                  </th>
+                ))
+              }
+            </tr>
+          </thead>
+          <tbody>
+            {
+              days.map(({ data }) => (
+                <tr
+                  class="group relative border-b border-cream/10 transition-colors hover:bg-bark/60 focus-within:bg-bark/60"
+                  data-day={data.day}
+                  data-name={data.name}
+                  data-date={isoDate(data.date)}
+                  data-miles={data.mileage}
+                >
+                  <td class="py-3 pr-4 font-medium text-rust-300 tabular-nums">{data.day}</td>
+                  <td class="py-3 pr-4">
+                    <a
+                      href={`/blog/${data.day}`}
+                      class="text-cream after:absolute after:inset-0 group-hover:underline group-hover:decoration-rust-400 group-hover:underline-offset-4"
+                    >
+                      {data.name}
+                    </a>
+                  </td>
+                  <td class="py-3 pr-4 whitespace-nowrap text-cream-400 tabular-nums">
+                    <time datetime={isoDate(data.date)}>{formatShortDate(data.date)}<span class="hidden sm:inline">, {data.date.getUTCFullYear()}</span></time>
+                  </td>
+                  <td class="hidden py-3 text-right text-cream-200 tabular-nums sm:table-cell">{formatMiles(data.mileage)}</td>
+                </tr>
+              ))
+            }
+          </tbody>
+        </table>
+      </div>
+      <p id="no-results" class="hidden py-10 text-center text-cream-400">No days match that search.</p>
+    </div>
+  </section>
+</BaseLayout>
+
+<script>
+  const table = document.getElementById('day-table') as HTMLTableElement | null;
+  const search = document.getElementById('day-search') as HTMLInputElement | null;
+  const count = document.getElementById('day-count');
+  const empty = document.getElementById('no-results');
+
+  if (table && search) {
+    const tbody = table.tBodies[0];
+    const rows = Array.from(tbody.rows);
+    const total = rows.length;
+    const buttons = Array.from(table.querySelectorAll<HTMLButtonElement>('button[data-sort]'));
+    let sortKey = 'day';
+    let direction: 'ascending' | 'descending' = 'ascending';
+
+    const value = (row: HTMLTableRowElement, key: string, type: string) =>
+      type === 'number' ? Number(row.dataset[key]) : (row.dataset[key] ?? '').toLowerCase();
+
+    const render = () => {
+      for (const button of buttons) {
+        const th = button.closest('th');
+        const active = button.dataset.sort === sortKey;
+        th?.setAttribute('aria-sort', active ? direction : 'none');
+        const indicator = button.querySelector('[data-indicator]');
+        if (indicator) indicator.textContent = active ? (direction === 'ascending' ? '↑' : '↓') : '';
+      }
+    };
+
+    const sortBy = (key: string, type: string) => {
+      direction = key === sortKey && direction === 'ascending' ? 'descending' : 'ascending';
+      sortKey = key;
+      const factor = direction === 'ascending' ? 1 : -1;
+      rows.sort((a, b) => {
+        const x = value(a, key, type);
+        const y = value(b, key, type);
+        if (x < y) return -1 * factor;
+        if (x > y) return 1 * factor;
+        return (Number(a.dataset.day) - Number(b.dataset.day)) * factor;
+      });
+      tbody.append(...rows);
+      render();
+    };
+
+    for (const button of buttons) {
+      button.addEventListener('click', () => sortBy(button.dataset.sort ?? 'day', button.dataset.type ?? 'text'));
+    }
+
+    search.addEventListener('input', () => {
+      const query = search.value.trim().toLowerCase();
+      let shown = 0;
+      for (const row of rows) {
+        const match = !query || (row.textContent ?? '').toLowerCase().includes(query);
+        row.hidden = !match;
+        if (match) shown += 1;
+      }
+      if (count) count.textContent = `Showing ${shown} of ${total} days`;
+      empty?.classList.toggle('hidden', shown > 0);
+    });
+
+    render();
+  }
+</script>

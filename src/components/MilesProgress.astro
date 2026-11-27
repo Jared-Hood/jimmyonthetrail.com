@@ -1,0 +1,32 @@
+---
+import { formatMiles } from '../lib/days';
+
+interface Props {
+  traveled: number;
+  total: number;
+}
+
+const { traveled, total } = Astro.props;
+const rounded = Math.round(traveled * 100) / 100;
+const percent = Math.min(100, (rounded / total) * 100);
+---
+
+<div class="w-full">
+  <p class="flex flex-wrap items-baseline gap-x-2 text-cream-200">
+    <span class="text-[clamp(1.75rem,1.3rem+1.5vw,2.5rem)] leading-none font-medium tracking-tight text-cream tabular-nums">
+      {formatMiles(rounded)}
+    </span>
+    <span class="text-cream-400">/ {formatMiles(total)} miles traveled</span>
+  </p>
+  <div
+    class="mt-4 h-1.5 w-full overflow-hidden bg-cream/15"
+    role="progressbar"
+    aria-label="Miles traveled"
+    aria-valuemin="0"
+    aria-valuemax={total}
+    aria-valuenow={rounded}
+    aria-valuetext={`${formatMiles(rounded)} of ${formatMiles(total)} miles (${Math.round(percent)}%)`}
+  >
+    <div class="h-full bg-rust-400" style={`width: ${percent}%`}></div>
+  </div>
+</div>

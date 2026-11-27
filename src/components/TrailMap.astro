@@ -1,0 +1,17 @@
+---
+/** Trail map: the AdventureMapper embed. Kept in one component so it can be swapped later. */
+import { trailMap } from '../data/site';
+---
+
+<figure class="m-0">
+  <iframe
+    src={trailMap.embedUrl}
+    title={trailMap.title}
+    loading="lazy"
+    allowfullscreen
+    class="block h-[min(80vh,720px)] min-h-[480px] w-full border-0 bg-bark"
+  ></iframe>
+  <figcaption class="page-container py-3 text-xs text-cream-600">
+    Map by <a href={trailMap.creditUrl} class="text-cream-400 underline decoration-cream/30 underline-offset-2 hover:text-cream">Adventure Mapper</a>
+  </figcaption>
+</figure>
