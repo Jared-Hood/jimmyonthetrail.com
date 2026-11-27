@@ -1,4 +1,4 @@
-# Cache headers, format understood by Cloudflare Pages / Workers static assets and Netlify.
+# Cache headers (Cloudflare Workers static assets).
 # Fingerprinted build files and fonts never change at the same URL: cache for a year.
 /_astro/*
   Cache-Control: public, max-age=31536000, immutable
@@ -7,7 +7,7 @@
   Cache-Control: public, max-age=31536000, immutable
 
 # HTML pages: always revalidate so new deploys show up. Listed by route (not /*) so these
-# rules never also match the long-cached paths above (hosts merge matching rules).
+# rules never also match the long-cached paths above (Cloudflare merges matching rules).
 /
   Cache-Control: no-cache
 

@@ -20,22 +20,34 @@ Built with [Astro 7](https://astro.build), Tailwind CSS v4 (via `@tailwindcss/vi
 | `npm run dev` | Dev server at http://localhost:4321 |
 | `npx astro dev --background` | Same, in the background (`astro dev stop`, `astro dev status`, `astro dev logs`); see `AGENTS.md` |
 | `npm run build` | Build the static site into `dist/` (165 pages) |
-| `npm run preview` | Serve the built `dist/` locally |
+| `npm run preview` | Serve the built `dist/` locally (Astro) |
+| `npm run preview:cf` | Build, then serve `dist/` with `wrangler dev` (as Cloudflare does) |
+| `npm run deploy` | Build, then `wrangler deploy` |
 | `npx astro check` | Type and template checks |
 
-### Deploy
+### Deploy (Cloudflare Workers, static assets)
 
-`npm run build` writes a fully static site to `dist/`. Deploy that folder to any static host.
+The site is fully static: no Worker script and no Astro adapter. `wrangler.jsonc` tells Cloudflare
+to serve `dist/` as static assets (worker name `jimmyonthetrail-com`).
 
-- Astro builds with `build.format: 'file'` (`/blog/5` → `dist/blog/5.html`), so hosts serve clean
-  URLs without a trailing slash.
-- `public/_redirects` (301s from the old site's `.html` URLs, e.g. `/gear.html` → `/gear`,
-  `/blog/5.html` → `/blog/5`) and `public/_headers` (a year of caching for `/_astro/*` and
-  `/fonts/*`, `no-cache` for HTML pages) are copied into `dist/` and honored by Cloudflare
-  (Pages / Workers static assets) and Netlify. Other hosts need the equivalent settings.
-- The Adventure Mapper embed on `/map` only renders on allowed domains: localhost,
-  `jimmyonthetrail.com` and `jimmyonthetrail-com.jaredhfootball.workers.dev`. A new host or
-  preview domain must be added on the Adventure Mapper side, or the map shows an empty frame.
+| Setting | Value |
+| --- | --- |
+| Build command | `npm run build` |
+| Deploy command | `npx wrangler deploy` (Workers Builds runs it after the build) |
+| Node | 24 (set the build image's Node version, e.g. `NODE_VERSION=24`) |
+
+From a local machine, `npm run deploy` builds and deploys, and `npm run preview:cf` builds and
+serves `dist/` with `wrangler dev`, the same way Cloudflare does.
+
+- `html_handling: "drop-trailing-slash"`: Astro builds `/blog/5` as `dist/blog/5.html`
+  (`build.format: 'file'`); Cloudflare serves it at `/blog/5` and redirects `/blog/5/` there.
+- `not_found_handling: "404-page"`: unknown URLs get `dist/404.html` with a 404 status.
+- `public/_redirects`: 301s from the old site's `.html` URLs (`/gear.html` → `/gear`,
+  `/blog/5.html` → `/blog/5`, …).
+- `public/_headers`: a year of caching for `/_astro/*` and `/fonts/*`, `no-cache` for HTML pages.
+- The Adventure Mapper embed on `/map` only renders on allowed domains. `jimmyonthetrail.com`,
+  `jimmyonthetrail-com.jaredhfootball.workers.dev` and localhost are already allowed; any other
+  domain must be added on the Adventure Mapper side, or the map shows an empty frame.
 
 ## Routes
 
@@ -71,6 +83,7 @@ src/
                     adventuremapper-stops.json (day → Adventure Mapper stop/day IDs)
   styles/global.css Tailwind theme tokens, fonts, prose styling
 public/             favicons, fonts (WOFF2), robots.txt, site.webmanifest, _redirects, _headers
+wrangler.jsonc      Cloudflare Workers static-assets config
 scripts/            one-off and maintenance scripts (below)
 docs/               text-cleanup-changes.md: every spelling fix made to the journal text
 ```
