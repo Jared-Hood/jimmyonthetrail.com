@@ -21,7 +21,7 @@ import { baseWeight, gearIntro, gearSections } from '../data/gear';
   </PageHeader>
 
   <section class="py-8 md:py-12" aria-label="Gear list">
-    <div class="container mx-auto max-w-6xl px-4 sm:px-6 columns-1 gap-x-12 md:columns-2 xl:columns-3">
+    <div class="container mx-auto px-4 sm:px-6 columns-1 gap-x-12 md:columns-2 xl:columns-3">
       {
         gearSections.map((section, index) => {
           const id = `gear-${section.title.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`;

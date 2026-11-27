@@ -15,7 +15,7 @@ const isCurrent = (href: string) => path === href || path.startsWith(`${href}/`)
 </a>
 
 <header class="relative z-40 border-b border-cream bg-bark">
-  <div class="container mx-auto max-w-6xl px-4 sm:px-6 flex h-header items-center justify-between gap-8 lg:h-header-lg">
+  <div class="container mx-auto px-4 sm:px-6 flex h-header items-center justify-between gap-8 lg:h-header-lg">
     <a href="/" class="-ml-1 shrink-0 p-1" aria-label="Jimmy on the Trail, home">
       <Image
         src={logo}
@@ -71,7 +71,7 @@ const isCurrent = (href: string) => path === href || path.startsWith(`${href}/`)
   class="mobile-menu group fixed inset-x-0 top-0 z-50 flex h-dvh flex-col bg-bark md:hidden"
 >
   <div class="border-b border-cream">
-    <div class="container mx-auto max-w-6xl px-4 sm:px-6 flex h-header items-center justify-between gap-8">
+    <div class="container mx-auto px-4 sm:px-6 flex h-header items-center justify-between gap-8">
       <a href="/" class="-ml-1 shrink-0 p-1" aria-label="Jimmy on the Trail, home" data-menu-link>
         <Image src={logo} alt="" height={72} densities={[1, 2]} class="h-11 w-auto sm:h-14" />
       </a>
@@ -91,7 +91,7 @@ const isCurrent = (href: string) => path === href || path.startsWith(`${href}/`)
   </div>
 
   <nav aria-label="Main" class="flex-1 overflow-y-auto">
-    <ul class="container mx-auto max-w-6xl px-4 sm:px-6 flex flex-col pt-6 pb-10">
+    <ul class="container mx-auto px-4 sm:px-6 flex flex-col pt-6 pb-10">
       {
         nav.map((item, index) => (
           <li

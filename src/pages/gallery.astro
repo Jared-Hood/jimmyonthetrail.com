@@ -38,7 +38,7 @@ const sizesFor = (fraction: number) => {
   const f = fraction.toFixed(3);
   // Phones get a slightly understated slot (two columns ≈ 45vw each) so 3x screens load
   // 400px thumbnails rather than 600px; the full-size photo is one tap away in the viewer.
-  return `(min-width: 72rem) ${Math.round(1104 * fraction)}px, (min-width: 40rem) calc((100vw - 3rem) * ${f}), 33vw`;
+  return `(min-width: 96rem) ${Math.round(1440 * fraction)}px, (min-width: 40rem) calc((100vw - 3rem) * ${f}), 33vw`;
 };
 const rowCells = rows.map((row) => {
   const total = row.cells.reduce((sum, cell) => sum + cellAspect(cell), 0);
@@ -72,7 +72,7 @@ const galleryLd = {
   <PageHeader title="Gallery" eyebrow={`${photos.length} photos from the trail`} />
 
   <section class="py-6 md:py-10" aria-label="Photos">
-    <div class="container mx-auto max-w-6xl px-4 sm:px-6">
+    <div class="container mx-auto px-4 sm:px-6">
       <div class="gallery">
         {
           rowCells.map((row) => (

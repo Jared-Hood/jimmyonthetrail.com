@@ -76,7 +76,7 @@ const coordinates = `${Math.abs(lat).toFixed(4)}° ${lat >= 0 ? 'N' : 'S'}, ${Ma
 
   <article class="pb-10 md:pb-16">
     <header class:list={['border-b border-cream/15', !lead && 'bg-bark/40']}>
-      <div class:list={['container mx-auto max-w-6xl px-4 sm:px-6', lead ? 'pt-6 pb-6 md:pt-8' : 'pt-6 pb-8 md:pt-8 md:pb-12']}>
+      <div class:list={['container mx-auto px-4 sm:px-6', lead ? 'pt-6 pb-6 md:pt-8' : 'pt-6 pb-8 md:pt-8 md:pb-12']}>
         <nav aria-label="Breadcrumb" class="mb-6 text-sm md:mb-8">
           <ol class="flex items-center gap-2 text-cream-400">
             <li><a href="/blog" class="hover:text-cream">Blog</a></li>
@@ -106,7 +106,7 @@ const coordinates = `${Math.abs(lat).toFixed(4)}° ${lat >= 0 ? 'N' : 'S'}, ${Ma
 
     {
       lead && (
-        <figure class="container mx-auto max-w-6xl mt-6 px-4 sm:px-6">
+        <figure class="container mx-auto mt-6 px-4 sm:px-6">
           <div class="flex justify-center overflow-hidden rounded-photo bg-bark">
             <Image
               src={lead.src}
@@ -117,7 +117,7 @@ const coordinates = `${Math.abs(lat).toFixed(4)}° ${lat >= 0 ? 'N' : 'S'}, ${Ma
               quality={72}
               loading="eager"
               fetchpriority="high"
-              sizes="(min-width: 72rem) 1104px, calc(100vw - 2rem)"
+              sizes="(min-width: 96rem) 1488px, (min-width: 80rem) 1232px, calc(100vw - 2rem)"
               class="max-h-[75vh] w-auto object-contain"
             />
           </div>
@@ -126,7 +126,7 @@ const coordinates = `${Math.abs(lat).toFixed(4)}° ${lat >= 0 ? 'N' : 'S'}, ${Ma
       )
     }
 
-    <div class="container mx-auto max-w-6xl px-4 sm:px-6">
+    <div class="container mx-auto px-4 sm:px-6">
       <dl class="mt-6 grid grid-cols-2 gap-px overflow-hidden rounded-photo border border-cream/15 bg-cream/15 sm:grid-cols-3 lg:grid-cols-5">
         {
           [
