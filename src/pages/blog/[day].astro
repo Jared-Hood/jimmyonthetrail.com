@@ -31,7 +31,16 @@ const { entry, state, milesSoFar, milesToGo } = info;
 const { day, name, date, lat, long, mileage, altitude, images } = entry.data;
 
 const description = dayDescription(info);
-const page = { name: `Day ${day}`, title: dayTitle(info), description, slug: `blog/${day}` };
+const page = {
+  name: `Day ${day}`,
+  title: dayTitle(info),
+  description,
+  slug: `blog/${day}`,
+  // Days with photos share their lead photo; the rest get a generated card (public/og/day/N.png).
+  ...(images.length === 0 && {
+    ogImage: { path: `/og/day/${day}.png`, alt: `Day ${day}: ${name}, ${state}. ${formatMiles(mileage)} miles that day. Jimmy on the Trail.` },
+  }),
+};
 const hasText = Boolean(entry.body?.trim());
 const { Content } = await render(entry);
 
