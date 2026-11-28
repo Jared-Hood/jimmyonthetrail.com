@@ -60,6 +60,14 @@ export const pages = {
   },
 } satisfies Record<string, PageMeta>;
 
+/** Default social share card (public/og/default.png, built by scripts/build-og-image.mjs). */
+export const defaultOgCard = {
+  path: '/og/default.png',
+  width: 1200,
+  height: 630,
+  alt: 'Jimmy on the Trail: Jimmy with arms raised on the Katahdin summit sign. Appalachian Trail thru-hike, Georgia to Maine, 2022.',
+} as const;
+
 /** AdventureMapper embed shown on /map. */
 export const trailMap = {
   embedUrl: 'https://adventuremapper.com/embed/F4bMyTEJHf',
