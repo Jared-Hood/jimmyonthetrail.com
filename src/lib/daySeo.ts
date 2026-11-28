@@ -23,13 +23,19 @@ export function dayHeadline({ entry, state }: DayInfo): string {
   return `Day ${entry.data.day}: ${entry.data.name}, ${STATE_ABBR[state] ?? state}`;
 }
 
-/** <title>, kept under ~60 characters by dropping the suffix when needed. */
+/**
+ * Page part of the <title> ("Day 12: Nantahala Outdoor Center, NC"); SEO.astro adds
+ * " | Jimmy on the Trail". The whole title stays within 60 characters: drop the state first,
+ * then shorten the location.
+ */
 export function dayTitle(info: DayInfo): string {
-  const headline = dayHeadline(info);
-  for (const suffix of [' | Appalachian Trail Thru-Hike', ' | AT Thru-Hike']) {
-    if (headline.length + suffix.length <= 60) return headline + suffix;
-  }
-  return headline;
+  const max = 60 - ' | Jimmy on the Trail'.length;
+  const { day, name } = info.entry.data;
+  const full = dayHeadline(info);
+  if (full.length <= max) return full;
+  const noState = `Day ${day}: ${name}`;
+  if (noState.length <= max) return noState;
+  return `${noState.slice(0, max - 1).trimEnd()}…`;
 }
 
 /** Meta description with the day's miles, place and state, ~150–160 characters. */

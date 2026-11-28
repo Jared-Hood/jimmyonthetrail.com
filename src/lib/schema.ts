@@ -1,5 +1,5 @@
 /** Shared JSON-LD pieces so every page points at the same entities by @id. */
-import { hiker, site } from '../data/site';
+import { defaultOgCard, hiker, site } from '../data/site';
 
 export const ids = {
   website: `${site.url}/#website`,
@@ -28,6 +28,13 @@ export const website = {
   inLanguage: 'en',
   author: { '@id': ids.person },
   publisher: { '@id': ids.person },
+  image: {
+    '@type': 'ImageObject',
+    url: absolute(defaultOgCard.path),
+    width: defaultOgCard.width,
+    height: defaultOgCard.height,
+    caption: defaultOgCard.alt,
+  },
 };
 
 export const adventureMapper = {

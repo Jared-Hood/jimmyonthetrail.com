@@ -1,0 +1,173 @@
+#!/usr/bin/env node
+/**
+ * Builds the social share cards in public/og/ (all 1200×630):
+ *
+ *   default.png            home and 404 (Katahdin summit photo, logo, trail line)
+ *   blog.jpg, gear.jpg,    section cards: page name in the Heading font beside a photo
+ *   map.jpg, wishes.jpg,   (JPEG: mostly photo, so much smaller than PNG)
+ *   gallery.jpg
+ *
+ * Cards are laid out in HTML (so the site's own fonts and logo render exactly), screenshotted
+ * with headless Chrome a few at a time, then compressed with sharp (installed with Astro).
+ *
+ *   node scripts/build-og-image.mjs                 # everything
+ *   node scripts/build-og-image.mjs default blog    # only these cards
+ *   CHROME_PATH=/path/to/chrome node scripts/build-og-image.mjs
+ *
+ * Day pages use their lead photo, or the blog card when they have no photos.
+ */
+import { execFile } from 'node:child_process';
+import { mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import path from 'node:path';
+import { promisify } from 'node:util';
+import { fileURLToPath, pathToFileURL } from 'node:url';
+import sharp from 'sharp';
+
+const run = promisify(execFile);
+const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+const chrome = process.env.CHROME_PATH ?? '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
+const outDir = path.join(root, 'public/og');
+const file = (p) => pathToFileURL(path.join(root, p)).href;
+const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
+
+/** Section cards: page name and the photo beside it (distinct photos, all from the site). */
+const SECTIONS = {
+  blog: { title: 'Trail Journal', line: '157 days on the Appalachian Trail', photo: 'src/assets/gallery/gallery3.png', focus: '50% 45%' },
+  gear: { title: 'Gear List', line: 'What I carried from Georgia to Maine', photo: 'src/assets/gallery/gallery72.png', focus: '50% 50%' },
+  map: { title: 'Interactive Map', line: 'Every stop from Springer to Katahdin', photo: 'src/assets/gallery/gallery68.png', focus: '50% 50%' },
+  wishes: { title: 'Well Wishes', line: 'Messages from friends and family', photo: 'src/assets/gallery/gallery70.png', focus: '50% 45%' },
+  gallery: { title: 'Photo Gallery', line: '87 photos from the Appalachian Trail', photo: 'src/assets/gallery/gallery26.png', focus: '50% 50%' },
+};
+
+const fonts = `
+  @font-face { font-family: Heading; src: url('${file('public/fonts/Heading.woff2')}') format('woff2'); }
+  @font-face { font-family: Montserrat; font-weight: 300; src: url('${file('public/fonts/Montserrat-ExtraLight.woff2')}') format('woff2'); }
+  @font-face { font-family: Montserrat; font-weight: 500; src: url('${file('public/fonts/Montserrat-Medium.woff2')}') format('woff2'); }
+  * { margin: 0; box-sizing: border-box; }
+  html, body { width: 1200px; height: 630px; overflow: hidden; background: #413333; }
+  .card { position: relative; width: 1200px; height: 630px; display: flex; color: #f4e0cb; font-family: Montserrat, sans-serif; }
+  .frame { position: absolute; inset: 14px; border: 1px solid rgba(244,224,203,0.35); z-index: 3; }
+  .photo { position: absolute; inset: 0 0 0 auto; height: 630px; object-fit: cover; }
+  .scrim { position: absolute; inset: 0 0 0 auto; z-index: 1; background: linear-gradient(90deg, #413333 0%, rgba(65,51,51,0.55) 22%, rgba(65,51,51,0) 48%); }
+  .label { font-weight: 500; font-size: 22px; letter-spacing: 0.16em; text-transform: uppercase; color: #d4927b; }
+  .site { font-weight: 500; font-size: 20px; letter-spacing: 0.08em; color: #c9b19a; }
+`;
+
+/** The original home card (unchanged design). */
+const defaultCard = (photo) => `
+  <style>${fonts}
+    .text { position: relative; z-index: 2; width: 640px; padding: 64px 0 56px 72px; display: flex; flex-direction: column; }
+    .logo { width: 470px; }
+    .rule { width: 72px; height: 3px; background: #d4927b; margin: 40px 0 28px; }
+    .line { font-weight: 500; font-size: 33px; line-height: 1.25; letter-spacing: 0.01em; }
+    .facts { margin-top: 18px; font-weight: 500; font-size: 22px; letter-spacing: 0.14em; text-transform: uppercase; color: #d4927b; }
+    .site { margin-top: auto; }
+  </style>
+  <div class="card">
+    <img class="photo" style="width:640px; object-position:50% 42%" src="${photo}" alt="">
+    <div class="scrim" style="width:640px"></div>
+    <div class="text">
+      <img class="logo" src="${file('src/assets/images/logo.png')}" alt="">
+      <div class="rule"></div>
+      <p class="line">Appalachian Trail thru-hike<br>Georgia to Maine &middot; 2022</p>
+      <p class="facts">2,194.3 miles &middot; 157 days</p>
+      <p class="site">jimmyonthetrail.com</p>
+    </div>
+    <div class="frame"></div>
+  </div>`;
+
+/** Section card: brand label, page name in the Heading font, one line, photo on the right. */
+const sectionCard = ({ title, line, focus }, photo) => `
+  <style>${fonts}
+    .text { position: relative; z-index: 2; width: 640px; padding: 70px 0 56px 72px; display: flex; flex-direction: column; }
+    .title { margin-top: 26px; font-family: Heading; font-size: 104px; line-height: 0.92; letter-spacing: 0.01em; }
+    .rule { width: 72px; height: 3px; background: #d4927b; margin: 34px 0 26px; }
+    .line { font-weight: 500; font-size: 30px; line-height: 1.3; max-width: 470px; }
+    .site { margin-top: auto; }
+  </style>
+  <div class="card">
+    <img class="photo" style="width:600px; object-position:${focus}" src="${photo}" alt="">
+    <div class="scrim" style="width:600px"></div>
+    <div class="text">
+      <p class="label">Jimmy on the Trail</p>
+      <h1 class="title">${esc(title)}</h1>
+      <div class="rule"></div>
+      <p class="line">${esc(line)}</p>
+      <p class="site">jimmyonthetrail.com</p>
+    </div>
+    <div class="frame"></div>
+  </div>`;
+
+// ---------- Rendering ----------
+
+const work = await mkdtemp(path.join(tmpdir(), 'og-cards-'));
+
+/** Downscale a source photo so Chrome renders quickly. */
+async function preparePhoto(src, name) {
+  const out = path.join(work, `${name}.jpg`);
+  await sharp(path.join(root, src)).rotate().resize({ width: 1000, withoutEnlargement: true }).jpeg({ quality: 90 }).toFile(out);
+  return pathToFileURL(out).href;
+}
+
+async function render(name, body, outFile) {
+  const htmlPath = path.join(work, `${name}.html`);
+  const shot = path.join(work, `${name}.png`);
+  await writeFile(htmlPath, `<!doctype html><html><head><meta charset="utf-8"></head><body>${body}</body></html>`);
+  await run(chrome, [
+    '--headless=new',
+    '--no-first-run',
+    `--user-data-dir=${path.join(work, `profile-${name}`)}`,
+    '--hide-scrollbars',
+    '--allow-file-access-from-files',
+    '--force-device-scale-factor=1',
+    '--window-size=1200,630',
+    '--virtual-time-budget=4000',
+    `--screenshot=${shot}`,
+    pathToFileURL(htmlPath).href,
+  ]);
+  // Section cards are mostly photo, so JPEG keeps them small; the rest are palette PNGs.
+  const image = sharp(shot).resize(1200, 630, { fit: 'cover' });
+  const buffer = outFile.endsWith('.jpg')
+    ? await image.jpeg({ quality: 84, mozjpeg: true, chromaSubsampling: '4:4:4' }).toBuffer()
+    : await image.png({ palette: true, quality: 90, effort: 10, dither: 0.6 }).toBuffer();
+  await mkdir(path.dirname(outFile), { recursive: true });
+  await writeFile(outFile, buffer);
+  return buffer.length;
+}
+
+/** Runs jobs a few at a time (each is a separate Chrome process). */
+async function pool(jobs, size = 6) {
+  const results = [];
+  let next = 0;
+  await Promise.all(
+    Array.from({ length: size }, async () => {
+      while (next < jobs.length) {
+        const job = jobs[next++];
+        results.push(await job());
+      }
+    }),
+  );
+  return results;
+}
+
+const wanted = new Set(process.argv.slice(2));
+const want = (key) => wanted.size === 0 || wanted.has(key);
+
+const jobs = [];
+if (want('default')) {
+  const photo = await preparePhoto('src/assets/images/Summit.jpg', 'summit');
+  jobs.push(async () => ['default.png', await render('default', defaultCard(photo), path.join(outDir, 'default.png'))]);
+}
+for (const [key, section] of Object.entries(SECTIONS)) {
+  if (!want(key)) continue;
+  const photo = await preparePhoto(section.photo, key);
+  jobs.push(async () => [`${key}.jpg`, await render(key, sectionCard(section, photo), path.join(outDir, `${key}.jpg`))]);
+}
+const results = await pool(jobs);
+await rm(work, { recursive: true, force: true });
+
+const total = results.reduce((sum, [, bytes]) => sum + bytes, 0);
+const largest = results.reduce((a, b) => (b[1] > a[1] ? b : a), ['', 0]);
+console.log(`Wrote ${results.length} cards to public/og/ (${(total / 1024 / 1024).toFixed(2)} MB total; largest ${largest[0]} ${(largest[1] / 1024).toFixed(0)} KB)`);

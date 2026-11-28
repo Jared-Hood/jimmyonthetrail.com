@@ -1,8 +1,7 @@
 ---
 import type { ImageMetadata } from 'astro';
 import { getImage } from 'astro:assets';
-import { site, type PageMeta } from '../data/site';
-import defaultOgImage from '../assets/images/skyline.jpeg';
+import { defaultOgCard, site, type PageMeta } from '../data/site';
 
 interface Props {
   page: PageMeta;
@@ -10,15 +9,24 @@ interface Props {
   imageAlt?: string;
 }
 
-const { page, image = defaultOgImage, imageAlt = 'Blue ridges of the Appalachian Mountains under a hazy sky' } =
-  Astro.props;
+const { page, image, imageAlt } = Astro.props;
 
 const siteUrl = Astro.site ?? new URL(site.url);
-const title = page.title ?? `${page.name} | ${site.name}`;
+// One recipe: "Page title | Jimmy on the Trail" everywhere; home sets its full title (brand first).
+const title = page.fullTitle ?? `${page.title ?? page.name} | ${site.name}`;
 const canonical = new URL(page.slug ? `/${page.slug}` : '/', siteUrl).href;
 
-const og = await getImage({ src: image, width: 1200, format: 'jpg', quality: 80 });
-const ogImage = new URL(og.src, siteUrl).href;
+// Pages can pass their own photo (e.g. a day's lead photo); everything else uses the default
+// share card built by scripts/build-og-image.mjs.
+const og = image
+  ? await getImage({ src: image, width: Math.min(1200, image.width), format: 'jpg', quality: 80 })
+  : undefined;
+// Otherwise the page's own card from public/og/ (all 1200×630), else the default card.
+const card = page.ogImage ?? defaultOgCard;
+const ogImage = new URL(og ? og.src : card.path, siteUrl).href;
+const ogWidth = og ? og.attributes.width : defaultOgCard.width;
+const ogHeight = og ? og.attributes.height : defaultOgCard.height;
+const ogAlt = image ? (imageAlt ?? '') : card.alt;
 ---
 
 <title>{title}</title>
@@ -32,7 +40,11 @@ const ogImage = new URL(og.src, siteUrl).href;
 <meta property="og:type" content={site.ogType} />
 <meta property="og:url" content={canonical} />
 <meta property="og:image" content={ogImage} />
-<meta property="og:image:width" content={String(og.attributes.width ?? 1200)} />
-<meta property="og:image:height" content={String(og.attributes.height ?? '')} />
-<meta property="og:image:alt" content={imageAlt} />
+{ogWidth && <meta property="og:image:width" content={String(ogWidth)} />}
+{ogHeight && <meta property="og:image:height" content={String(ogHeight)} />}
+<meta property="og:image:alt" content={ogAlt} />
 <meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content={title} />
+<meta name="twitter:description" content={page.description} />
+<meta name="twitter:image" content={ogImage} />
+<meta name="twitter:image:alt" content={ogAlt} />

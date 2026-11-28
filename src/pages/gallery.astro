@@ -76,7 +76,7 @@ const galleryLd = {
 };
 ---
 
-<BaseLayout page={pages.gallery} image={photos[0]?.src}>
+<BaseLayout page={pages.gallery}>
   <JsonLd slot="head" data={galleryLd} />
   <PageHeader title="Gallery" eyebrow={`${photos.length} photos from the Appalachian Trail`} />
 
