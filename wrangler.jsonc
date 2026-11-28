@@ -4,6 +4,8 @@
   // No Worker script and no Astro adapter.
   "name": "jimmyonthetrail-com",
   "compatibility_date": "2026-11-27",
+  // Required by `wrangler preview` (non-production branch builds); empty = default settings.
+  "previews": {},
   "assets": {
     "directory": "./dist",
     // Astro builds /blog/5 as dist/blog/5.html (build.format: 'file'). drop-trailing-slash serves

@@ -34,6 +34,7 @@ to serve `dist/` as static assets (worker name `jimmyonthetrail-com`).
 | --- | --- |
 | Build command | `npm run build` |
 | Deploy command | `npx wrangler deploy` (Workers Builds runs it after the build) |
+| Non-production branches | `npx wrangler preview` (needs the `previews` block in `wrangler.jsonc`) |
 | Node | 24 (set the build image's Node version, e.g. `NODE_VERSION=24`) |
 
 From a local machine, `npm run deploy` builds and deploys, and `npm run preview:cf` builds and
@@ -45,6 +46,8 @@ serves `dist/` with `wrangler dev`, the same way Cloudflare does.
 - `public/_redirects`: 301s from the old site's `.html` URLs (`/gear.html` → `/gear`,
   `/blog/5.html` → `/blog/5`, …).
 - `public/_headers`: a year of caching for `/_astro/*` and `/fonts/*`, `no-cache` for HTML pages.
+- Preview URLs from `wrangler preview` won't render the Adventure Mapper embed unless that
+  preview domain is allowed in Adventure Mapper.
 - The Adventure Mapper embed on `/map` only renders on allowed domains. `jimmyonthetrail.com`,
   `jimmyonthetrail-com.jaredhfootball.workers.dev` and localhost are already allowed; any other
   domain must be added on the Adventure Mapper side, or the map shows an empty frame.

@@ -7,7 +7,7 @@ import JsonLd from '../../components/JsonLd.astro';
 import DayCard from '../../components/DayCard.astro';
 import { getMapLink } from '../../lib/mapLink';
 import PhotoViewer from '../../components/PhotoViewer.astro';
-import { site, trailMap } from '../../data/site';
+import { pages, site, trailMap } from '../../data/site';
 import { ids, personRef } from '../../lib/schema';
 import { dayDescription, dayHeadline, dayTitle } from '../../lib/daySeo';
 import { formatDate, formatMiles, getDayInfo, isoDate, resolveDayImage, type DayInfo } from '../../lib/days';
@@ -36,10 +36,8 @@ const page = {
   title: dayTitle(info),
   description,
   slug: `blog/${day}`,
-  // Days with photos share their lead photo; the rest get a generated card (public/og/day/N.png).
-  ...(images.length === 0 && {
-    ogImage: { path: `/og/day/${day}.png`, alt: `Day ${day}: ${name}, ${state}. ${formatMiles(mileage)} miles that day. Jimmy on the Trail.` },
-  }),
+  // Days with photos share their lead photo; the rest use the blog's "Trail Journal" card.
+  ...(images.length === 0 && { ogImage: pages.blog.ogImage }),
 };
 const hasText = Boolean(entry.body?.trim());
 const { Content } = await render(entry);

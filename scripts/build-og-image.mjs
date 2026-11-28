@@ -6,21 +6,18 @@
  *   blog.jpg, gear.jpg,    section cards: page name in the Heading font beside a photo
  *   map.jpg, wishes.jpg,   (JPEG: mostly photo, so much smaller than PNG)
  *   gallery.jpg
- *   day/N.png              one per day WITHOUT photos (typographic: day, place, state, miles).
- *                          Days with photos use their lead photo instead.
  *
  * Cards are laid out in HTML (so the site's own fonts and logo render exactly), screenshotted
  * with headless Chrome a few at a time, then compressed with sharp (installed with Astro).
  *
  *   node scripts/build-og-image.mjs                 # everything
  *   node scripts/build-og-image.mjs default blog    # only these cards
- *   node scripts/build-og-image.mjs days            # only the day cards
  *   CHROME_PATH=/path/to/chrome node scripts/build-og-image.mjs
  *
- * Re-run after changing a day's name, mileage or photos, or the section photos below.
+ * Day pages use their lead photo, or the blog card when they have no photos.
  */
 import { execFile } from 'node:child_process';
-import { mkdir, mkdtemp, readFile, readdir, rm, writeFile } from 'node:fs/promises';
+import { mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { promisify } from 'node:util';
@@ -34,7 +31,6 @@ const outDir = path.join(root, 'public/og');
 const file = (p) => pathToFileURL(path.join(root, p)).href;
 const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
-const TRAIL_TOTAL_MILES = 2194.3;
 
 /** Section cards: page name and the photo beside it (distinct photos, all from the site). */
 const SECTIONS = {
@@ -104,110 +100,6 @@ const sectionCard = ({ title, line, focus }, photo) => `
     <div class="frame"></div>
   </div>`;
 
-/** Day card (days without photos): typographic, with a progress bar along the trail. */
-const dayCard = (d) => `
-  <style>${fonts}
-    .text { position: relative; width: 1200px; padding: 64px 72px 56px; display: flex; flex-direction: column; }
-    .top { display: flex; justify-content: space-between; align-items: center; }
-    .logo { width: 220px; }
-    .row { display: flex; align-items: flex-end; gap: 40px; margin-top: 34px; }
-    .num { font-family: Heading; font-size: 200px; line-height: 0.78; color: #d4927b; }
-    .place { font-family: Heading; font-size: ${d.name.length > 26 ? 60 : 74}px; line-height: 0.98; max-width: 760px; }
-    .meta { margin-top: 14px; font-weight: 500; font-size: 28px; color: #ead2b8; }
-    .stats { margin-top: auto; display: flex; gap: 48px; font-weight: 500; font-size: 26px; }
-    .stats span { display: block; font-size: 17px; letter-spacing: 0.16em; text-transform: uppercase; color: #c9b19a; margin-bottom: 6px; }
-    .bar { margin-top: 26px; height: 6px; background: rgba(244,224,203,0.18); border-radius: 3px; overflow: hidden; }
-    .bar div { height: 100%; background: #d4927b; }
-  </style>
-  <div class="card">
-    <div class="text">
-      <div class="top">
-        <p class="label">Appalachian Trail thru-hike &middot; 2022</p>
-        <img class="logo" src="${file('src/assets/images/logo.png')}" alt="">
-      </div>
-      <div class="row">
-        <p class="num">${d.day}</p>
-        <div>
-          <p class="label" style="color:#c9b19a">Day ${d.day}</p>
-          <h1 class="place">${esc(d.name)}</h1>
-          <p class="meta">${esc(d.state)} &middot; ${esc(d.date)}</p>
-        </div>
-      </div>
-      <div class="stats">
-        <p><span>That day</span>${d.miles} mi</p>
-        <p><span>So far</span>${d.soFar} of 2,194.3 mi</p>
-        <p><span>Site</span>jimmyonthetrail.com</p>
-      </div>
-      <div class="bar"><div style="width:${d.percent}%"></div></div>
-    </div>
-    <div class="frame"></div>
-  </div>`;
-
-// ---------- Day data (read straight from the Markdown frontmatter) ----------
-
-/** Mirrors src/lib/states.ts: point-in-polygon against src/data/at-states.json, else nearest. */
-const states = JSON.parse(await readFile(path.join(root, 'src/data/at-states.json'), 'utf8'));
-function inRing([x, y], ring) {
-  let inside = false;
-  for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
-    const [xi, yi] = ring[i];
-    const [xj, yj] = ring[j];
-    if (yi > y !== yj > y && x < ((xj - xi) * (y - yi)) / (yj - yi) + xi) inside = !inside;
-  }
-  return inside;
-}
-function stateFor(lat, long) {
-  const p = [long, lat];
-  const hit = states.features.find((f) =>
-    f.geometry.coordinates.some(([outer, ...holes]) => inRing(p, outer) && !holes.some((h) => inRing(p, h))),
-  );
-  if (hit) return hit.properties.name;
-  let best = Infinity;
-  let name = '';
-  for (const f of states.features)
-    for (const poly of f.geometry.coordinates)
-      for (const [x, y] of poly[0]) {
-        const d = ((p[0] - x) * Math.cos((p[1] * Math.PI) / 180)) ** 2 + (p[1] - y) ** 2;
-        if (d < best) [best, name] = [d, f.properties.name];
-      }
-  return name;
-}
-
-const fmt = (n) => n.toLocaleString('en-US', { maximumFractionDigits: 2 });
-const dateFmt = new Intl.DateTimeFormat('en-US', { timeZone: 'UTC', month: 'long', day: 'numeric', year: 'numeric' });
-
-async function loadDays() {
-  const dir = path.join(root, 'src/content/days');
-  const files = (await readdir(dir)).filter((f) => f.endsWith('.md')).sort();
-  let running = 0;
-  return Promise.all(
-    files.map(async (f) => {
-      const text = await readFile(path.join(dir, f), 'utf8');
-      const fm = text.split('---')[1];
-      const get = (key) => new RegExp(`^${key}: (.*)$`, 'm').exec(fm)?.[1]?.trim();
-      return { fm, get };
-    }),
-  ).then((items) =>
-    items.map(({ fm, get }) => {
-      const mileage = Number(get('mileage'));
-      running += mileage;
-      const soFar = Math.round(running * 10) / 10;
-      const lat = Number(get('lat'));
-      const long = Number(get('long'));
-      return {
-        day: Number(get('day')),
-        name: JSON.parse(get('name')),
-        date: dateFmt.format(new Date(`${get('date')}T00:00:00Z`)),
-        state: stateFor(lat, long),
-        miles: fmt(mileage),
-        soFar: fmt(soFar),
-        percent: Math.min(100, (soFar / TRAIL_TOTAL_MILES) * 100).toFixed(1),
-        hasPhotos: /^images:\s*\n\s+- /m.test(fm),
-      };
-    }),
-  );
-}
-
 // ---------- Rendering ----------
 
 const work = await mkdtemp(path.join(tmpdir(), 'og-cards-'));
@@ -273,15 +165,6 @@ for (const [key, section] of Object.entries(SECTIONS)) {
   const photo = await preparePhoto(section.photo, key);
   jobs.push(async () => [`${key}.jpg`, await render(key, sectionCard(section, photo), path.join(outDir, `${key}.jpg`))]);
 }
-if (want('days')) {
-  const days = await loadDays();
-  // Remove cards for days that now have photos (or no longer exist).
-  await rm(path.join(outDir, 'day'), { recursive: true, force: true });
-  for (const d of days.filter((d) => !d.hasPhotos)) {
-    jobs.push(async () => [`day/${d.day}.png`, await render(`day-${d.day}`, dayCard(d), path.join(outDir, 'day', `${d.day}.png`))]);
-  }
-}
-
 const results = await pool(jobs);
 await rm(work, { recursive: true, force: true });
 
